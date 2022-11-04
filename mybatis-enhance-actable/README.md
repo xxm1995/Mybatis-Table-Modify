@@ -14,7 +14,7 @@ A.C.Table是对Mybatis做的增强功能，支持SpringBoot以及传统的Spring
 
 A.C.Table是采用了Spring、Mybatis技术的Maven结构，详细介绍如下：
 
- **基本使用规范**
+#### 基本使用规范
 
 1.需要依赖mybatis-enhance-actable-1.5.0.RELEASE.jar
 
@@ -70,7 +70,7 @@ A.C.Table是采用了Spring、Mybatis技术的Maven结构，详细介绍如下�
     1. com.gitee.sunchenbin.mybatis.actable.manager.*
 ```
 
- **Springboot+Mybatis的项目使用步骤方法**
+#### Springboot+Mybatis的项目使用步骤方法
 
 1. 首先pom文件依赖actable框架
 
@@ -107,7 +107,7 @@ A.C.Table是采用了Spring、Mybatis技术的Maven结构，详细介绍如下�
     2. 通过注解@MapperScan配置，扫描mybatis的mapper，路径为"com.gitee.sunchenbin.mybatis.actable.dao.*"
 ```
 
- **传统Spring+Mybatis的Web项目使用步骤方法** 
+#### 传统Spring+Mybatis的Web项目使用步骤方法
  
 1. 首先pom文件依赖actable框架
 
@@ -190,7 +190,7 @@ A.C.Table是采用了Spring、Mybatis技术的Maven结构，详细介绍如下�
     </bean>
 ```
 	
-**代码用途讲解** 
+#### 代码用途讲解
 
     1. MySqlCharsetConstant.java这个对象里面配置的是mysql的数据类型，这里配置的类型越多，意味着创建表时能使用的类型越多
     
@@ -227,7 +227,7 @@ A.C.Table是采用了Spring、Mybatis技术的Maven结构，详细介绍如下�
     
     13.系统启动后会去自动调用SysMysqlCreateTableManagerImpl.java的createMysqlTable()方法，没错，这就是核心方法了，负责创建、删除、修改表。
 
- **model的写法例子(这里的@Table和@Column都是用的actable中的，也支持使用javax.persistence包下的@Table和@Column以及@Id)**
+#### model的写法例子(这里的@Table和@Column都是用的actable中的，也支持使用javax.persistence包下的@Table和@Column以及@Id)
 ```
 @Builder
 @Data
@@ -294,7 +294,7 @@ public class UserEntity extends BaseModel{
     private String	realName;
 }
 ```
- **@Column不设置类型时的默认转换规则如下（建议类型使用对象类型不要用基本数据类型）**
+#### @Column不设置类型时的默认转换规则如下（建议类型使用对象类型不要用基本数据类型）
 
         javaToMysqlTypeMap.put("class java.lang.String", MySqlTypeConstant.VARCHAR);
         javaToMysqlTypeMap.put("class java.lang.Long", MySqlTypeConstant.BIGINT);
@@ -309,7 +309,7 @@ public class UserEntity extends BaseModel{
         javaToMysqlTypeMap.put("class java.sql.Timestamp", MySqlTypeConstant.DATETIME);
         javaToMysqlTypeMap.put("class java.sql.Time", MySqlTypeConstant.TIME);
         
- **共通的CUDR功能使用**
+#### 共通的CUDR功能使用
 
     1.使用方法很简单，大家在manager或者Controller中直接注入BaseCRUDManager这个接口就可以了
     
@@ -319,7 +319,7 @@ public class UserEntity extends BaseModel{
     
     4.最新版本1.3.0.RELEASE引入了对tk.mybatis的支持，方便更灵活的CUDR，仅限于使用javax.persistence的注解Column/Table/Id时生效
  
- **AC.Table支持tk.mybatis框架的CUDR方法**
+#### AC.Table支持tk.mybatis框架的CUDR方法
     
     请参考tk.mybatis官方文档使用即可。
     
@@ -425,7 +425,7 @@ public class UserEntity extends BaseModel{
                 "<p> selectByExampleAndRowBounds：" + JSON.toJSONString(userEntities4);
     }
 
- **BaseCRUDManager使用代码示例**
+#### BaseCRUDManager使用代码示例
 ```
 @Controller
 public class TestController{
@@ -468,7 +468,7 @@ public class TestController{
 }
 
 ```
- **AC.Table支持的共通类BaseCRUDManager的CUDR方法接口文档如下**
+#### AC.Table支持的共通类BaseCRUDManager的CUDR方法接口文档如下
  
     /**
       * 根据实体对象的非Null字段作为Where条件查询结果集，如果对象的属性值都为null则返回全部数据等同于selectAll
@@ -621,7 +621,7 @@ public class TestController{
      <T> PageResultCommand<T> search(T t);
 
 
- **######### mybatis增加功能自动创建表——A.C.Table版本说明################** 
+#### mybatis增加功能自动创建表——A.C.Table版本说明
 1. 该版本修复了修改主键同时修改其类型引起的error(版本1.0.1)
 2. 该版本修复了根据model创建时没有创建父类中的字段的问题（ps：目前只支持扫描一层继承）(版本1.0.1)
 3. 该版本增加了对唯一约束的支持(版本1.0.1)
