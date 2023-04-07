@@ -1,9 +1,7 @@
 package com.gitee.sunchenbin.model;
 
-import cn.bootx.mybatis.actable.annotation.*;
-import cn.bootx.mybatis.actable.impl.mysql.constants.MySqlCharset;
-import cn.bootx.mybatis.actable.impl.mysql.constants.MySqlEngine;
-import cn.bootx.mybatis.actable.impl.mysql.constants.MySqlFieldType;
+import cn.bootx.mybatis.table.modify.annotation.*;
+import cn.bootx.mybatis.table.modify.impl.mysql.constants.MySqlFieldTypeEnum;
 
 import javax.persistence.Column;
 import javax.persistence.Id;
@@ -15,13 +13,9 @@ import java.util.Date;
  * 使用tk.mybatis的Table，Column，Id三个注解，其他的是actable的注解
  */
 @Table(name = "t_tkmybatis_advance")
-@TableComment("tkmyabts进阶版配置结合actable注解")
-@TableCharset(MySqlCharset.UTF8)
-@TableEngine(MySqlEngine.InnoDB)
 public class TKMybatisAdvance {
 
     @Id
-    @IsAutoIncrement
     private Long id;
 
     @Column(length = 50, nullable = false)
@@ -29,8 +23,7 @@ public class TKMybatisAdvance {
     private String name;
 
     @Column(name = "create_time")
-    @ColumnType(MySqlFieldType.TIMESTAMP)
-    @ColumnComment("创建时间")
+    @ColumnType(MySqlFieldTypeEnum.TIMESTAMP)
     private Date createTime;
 
     @Column
@@ -38,8 +31,7 @@ public class TKMybatisAdvance {
     private Boolean isTrue;
 
     @Column
-    @ColumnComment("年龄")
-    @ColumnType(value = MySqlFieldType.INT, length = 3)
+    @ColumnType(value = MySqlFieldTypeEnum.INT, length = 3)
     private Integer age;
 
     @Column(length = 10, scale = 4)

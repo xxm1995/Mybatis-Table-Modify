@@ -1,4 +1,4 @@
-# MyBatis-Actable
+# Mybatis-Table-Modify
 
 本项目Fork自 [A.C.Table](https://gitee.com/sunchenbin/mybatis-enhance)，因为该开源项目长期未有更新，而且目前项目中也用到了这个项目并进行了改造，
 所以打算继续根据原有的功能进行继续完善下去。

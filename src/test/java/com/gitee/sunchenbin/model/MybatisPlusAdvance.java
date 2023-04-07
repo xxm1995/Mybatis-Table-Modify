@@ -1,12 +1,10 @@
 package com.gitee.sunchenbin.model;
 
-import cn.bootx.mybatis.actable.annotation.*;
-import cn.bootx.mybatis.actable.impl.mysql.constants.MySqlFieldType;
+import cn.bootx.mybatis.table.modify.annotation.*;
+import cn.bootx.mybatis.table.modify.impl.mysql.constants.MySqlFieldTypeEnum;
 import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
-import cn.bootx.mybatis.actable.impl.mysql.constants.MySqlCharset;
-import cn.bootx.mybatis.actable.impl.mysql.constants.MySqlEngine;
 
 import java.math.BigDecimal;
 import java.util.Date;
@@ -15,24 +13,18 @@ import java.util.Date;
  *
  */
 @TableName("t_mybatisplus_advance")
-@TableComment("mybatisplus进阶版配置结合actable注解")
-@TableCharset(MySqlCharset.UTF8)
-@TableEngine(MySqlEngine.InnoDB)
 public class MybatisPlusAdvance {
 
     @TableId
-    @IsAutoIncrement
     private Long id;
 
     @TableField
     @ColumnType(length = 50)
-    @IsNotNull
     @Index(value = "idx_name_shop", columns = { "name", "shop" })
     private String name;
 
     @TableField("create_time")
-    @ColumnType(MySqlFieldType.TIMESTAMP)
-    @ColumnComment("创建时间")
+    @ColumnType(MySqlFieldTypeEnum.TIMESTAMP)
     private Date createTime;
 
     @TableField
@@ -40,8 +32,7 @@ public class MybatisPlusAdvance {
     private Boolean isTrue;
 
     @TableField
-    @ColumnComment("年龄")
-    @ColumnType(value = MySqlFieldType.INT, length = 3)
+    @ColumnType(value = MySqlFieldTypeEnum.INT, length = 3)
     private Integer age;
 
     @TableField

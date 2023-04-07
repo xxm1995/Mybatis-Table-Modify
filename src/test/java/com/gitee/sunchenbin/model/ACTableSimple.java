@@ -1,6 +1,6 @@
 package com.gitee.sunchenbin.model;
 
-import cn.bootx.mybatis.actable.annotation.*;
+import cn.bootx.mybatis.table.modify.annotation.*;
 
 import java.math.BigDecimal;
 import java.util.Date;
@@ -12,12 +12,10 @@ import java.util.Date;
 public class ACTableSimple {
 
     @IsKey
-    @IsAutoIncrement
     private Long id;
 
     @Column
     @Index
-    @IsNotNull
     private String name;
 
     @Column

@@ -1,9 +1,7 @@
 package com.gitee.sunchenbin.model;
 
-import cn.bootx.mybatis.actable.annotation.*;
-import cn.bootx.mybatis.actable.impl.mysql.constants.MySqlCharset;
-import cn.bootx.mybatis.actable.impl.mysql.constants.MySqlEngine;
-import cn.bootx.mybatis.actable.impl.mysql.constants.MySqlFieldType;
+import cn.bootx.mybatis.table.modify.annotation.*;
+import cn.bootx.mybatis.table.modify.impl.mysql.constants.MySqlFieldTypeEnum;
 
 import java.math.BigDecimal;
 import java.util.Date;
@@ -12,20 +10,16 @@ import java.util.Date;
  * 全部采用actable自有的注解
  */
 @Table(value = "t_actable_advance", comment = "actable进阶配置")
-@TableCharset(MySqlCharset.UTF8)
-@TableEngine(MySqlEngine.InnoDB)
 public class ACTableAdvance {
 
     @IsKey
-    @IsAutoIncrement
     private Long id;
 
     @Column
     @Index(value = "idx_name_shop", columns = { "name", "shop" })
-    @IsNotNull
     private String name;
 
-    @Column(name = "create_time", type = MySqlFieldType.TIMESTAMP, comment = "创建时间")
+    @Column(name = "create_time",  comment = "创建时间")
     private Date createTime;
 
     @Column
@@ -33,8 +27,7 @@ public class ACTableAdvance {
     private Boolean isTrue;
 
     @Column
-    @ColumnComment("年龄")
-    @ColumnType(value = MySqlFieldType.INT, length = 3)
+    @ColumnType(value = MySqlFieldTypeEnum.INT, length = 3)
     private Integer age;
 
     @Column(length = 10, decimalLength = 4)
