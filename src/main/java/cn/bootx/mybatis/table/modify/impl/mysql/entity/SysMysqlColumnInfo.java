@@ -11,7 +11,7 @@ import lombok.Setter;
  */
 @Getter
 @Setter
-public class SysMysqlColumns {
+public class SysMysqlColumnInfo {
 
     /**
      * 字段名

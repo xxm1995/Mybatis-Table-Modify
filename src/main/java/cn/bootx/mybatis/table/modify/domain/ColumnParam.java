@@ -13,7 +13,7 @@ import java.util.List;
  */
 @Getter
 @Setter
-public class CreateTableParam implements Cloneable {
+public class ColumnParam implements Cloneable {
 
     /**
      * 字段名
@@ -71,31 +71,6 @@ public class CreateTableParam implements Cloneable {
     private int fileTypeLength;
 
     /**
-     * 值是否唯一
-     */
-    private boolean fieldIsUnique;
-
-    /**
-     * 索引名称
-     */
-    private String filedIndexName;
-
-    /**
-     * 所有字段列表
-     */
-    private List<String> filedIndexValue;
-
-    /**
-     * 唯一约束名称
-     */
-    private String filedUniqueName;
-
-    /**
-     * 唯一约束列表
-     */
-    private List<String> filedUniqueValue;
-
-    /**
      * 字段的备注
      */
     private String fieldComment;
@@ -106,15 +81,15 @@ public class CreateTableParam implements Cloneable {
     private boolean ignoreUpdate;
 
     @Override
-    public CreateTableParam clone() {
-        CreateTableParam createTableParam = null;
+    public ColumnParam clone() {
+        ColumnParam columnParam = null;
         try {
-            createTableParam = (CreateTableParam) super.clone();
+            columnParam = (ColumnParam) super.clone();
         }
         catch (CloneNotSupportedException e) {
             e.printStackTrace();
         }
-        return createTableParam;
+        return columnParam;
     }
 
 }

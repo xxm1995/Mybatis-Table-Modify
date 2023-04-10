@@ -13,7 +13,7 @@ import java.util.Date;
  */
 @Getter
 @Setter
-public class MySqlTableInfo {
+public class SysMySqlTableInfo {
 
     /** 字符集的后缀 */
     public static final String TABLE_COLLATION_SUFFIX = "_general_ci";

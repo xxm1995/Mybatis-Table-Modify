@@ -4,13 +4,13 @@ import cn.bootx.mybatis.table.modify.annotation.*;
 import cn.bootx.mybatis.table.modify.configuration.MybatisTableModifyProperties;
 import cn.bootx.mybatis.table.modify.constants.TableCharset;
 import cn.bootx.mybatis.table.modify.handler.TableHandlerService;
+import cn.bootx.mybatis.table.modify.impl.mysql.annotation.MySqlIndex;
 import cn.bootx.mybatis.table.modify.impl.mysql.annotation.MySqlEngine;
+import cn.bootx.mybatis.table.modify.impl.mysql.annotation.MySqlIndexes;
 import cn.bootx.mybatis.table.modify.impl.mysql.constants.MySqlEngineEnum;
 import cn.bootx.mybatis.table.modify.impl.mysql.constants.MySql4JavaType;
 import cn.bootx.mybatis.table.modify.impl.mysql.constants.MySqlFieldTypeEnum;
-import cn.bootx.mybatis.table.modify.impl.mysql.entity.MySqlTableInfo;
-import cn.bootx.mybatis.table.modify.impl.mysql.entity.MySqlTypeAndLength;
-import cn.bootx.mybatis.table.modify.impl.mysql.entity.SysMysqlColumns;
+import cn.bootx.mybatis.table.modify.impl.mysql.entity.*;
 import cn.bootx.mybatis.table.modify.impl.mysql.mapper.MySqlTableModifyMapper;
 import cn.bootx.mybatis.table.modify.utils.ClassScanner;
 import cn.bootx.mybatis.table.modify.utils.ClassTools;
@@ -18,12 +18,15 @@ import cn.bootx.mybatis.table.modify.utils.ColumnUtils;
 import cn.bootx.mybatis.table.modify.constants.DatabaseType;
 import cn.bootx.mybatis.table.modify.constants.UpdateType;
 import cn.bootx.mybatis.table.modify.domain.BaseTableMap;
-import cn.bootx.mybatis.table.modify.domain.CreateTableParam;
+import cn.bootx.mybatis.table.modify.domain.ColumnParam;
 import cn.bootx.mybatis.table.modify.domain.TableConfig;
+import cn.hutool.core.collection.CollUtil;
+import cn.hutool.core.collection.ListUtil;
 import cn.hutool.core.util.StrUtil;
 import com.baomidou.mybatisplus.annotation.TableName;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.checkerframework.common.aliasing.qual.Unique;
 import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
@@ -73,7 +76,7 @@ public class MySqlTableHandlerService implements TableHandlerService {
         String[] packs = pack.split("[,;]");
 
         // 从包package中获取所有的Class
-        Set<Class<?>> classes = ClassScanner.scan(packs, Table.class, TableName.class);
+        Set<Class<?>> classes = ClassScanner.scan(packs, DbTable.class, TableName.class);
 
         // 初始化用于存储各种操作表结构的容器
         BaseTableMap baseTableMap = new BaseTableMap();
@@ -155,24 +158,15 @@ public class MySqlTableHandlerService implements TableHandlerService {
         }
 
         // 已存在时理论上做修改的操作，这里查出该表的结构
-        List<SysMysqlColumns> tableColumnList = mysqlTableModifyMapper.findTableEnsembleByTableName(tableName);
+        List<SysMysqlColumnInfo> tableColumnList = mysqlTableModifyMapper.findTableEnsembleByTableName(tableName);
 
         // 从sysColumns中取出我们需要比较的列的List
         // 先取出name用来筛选出增加和删除的字段
-        List<String> columnNames = ClassTools.getPropertyValueList(tableColumnList, SysMysqlColumns.COLUMN_NAME_KEY);
+        List<String> columnNames = ClassTools.getPropertyValueList(tableColumnList, SysMysqlColumnInfo.COLUMN_NAME_KEY);
 
-        // 验证对比从model中解析的allFieldList与从数据库查出来的columnList
-        // 2. 找出增加的字段
-        List<Object> addFieldList = getAddFieldList(allFieldList, columnNames);
+        // 找出所有的索引
+        List<MySqlIndexInfo> indexList = getIndexList(clas);
 
-        // 3. 找出删除的字段
-        List<Object> removeFieldList = getRemoveFieldList(columnNames, allFieldList);
-
-        // 4. 找出更新的字段
-        List<Object> modifyFieldList = getModifyFieldList(tableColumnList, allFieldList);
-
-        // 5. 找出需要删除主键的字段
-        List<Object> dropKeyFieldList = getDropKeyFieldList(tableColumnList, allFieldList);
 
         String uniPrefix = mybatisTableModifyProperties.getPrefixUnique();
         String idxPrefix = mybatisTableModifyProperties.getPrefixIndex();
@@ -180,17 +174,37 @@ public class MySqlTableHandlerService implements TableHandlerService {
         paramMap.put("tableName", tableName);
         paramMap.put("uniquePrefix", uniPrefix);
         paramMap.put("indexPrefix", idxPrefix);
-        // 查询当前表中全部 acteble 创建的索引和唯一约束，也就是名字前缀是actable_和actable_的
-        Set<String> allIndexAndUniqueNames = mysqlTableModifyMapper.findTableIndexByTableName(paramMap);
+        // 查询当前表中全部索引
+        List<SysMySqlIndexInfo> allIndexes = mysqlTableModifyMapper.findTableIndexByTableName(paramMap);
 
-        // 6. 找出需要删除的索引和唯一约束
-        List<Object> dropIndexAndUniqueFieldList = getDropIndexAndUniqueList(allIndexAndUniqueNames, allFieldList);
+        // 找出需要删除的索引和唯一约束
+        List<String> dropIndexAndUniqueFieldList = getDropIndexAndUniqueList(allIndexes, indexList);
 
-        // 7. 找出需要新增的索引
-        List<Object> addIndexFieldList = getAddIndexList(allIndexAndUniqueNames, allFieldList);
+        // 找出需要新增的索引
+        List<MySqlIndexInfo> addIndexFieldList = getAddIndexList(allIndexes, indexList);
 
-        // 8. 找出需要新增的唯一约束
-        List<Object> addUniqueFieldList = getAddUniqueList(allIndexAndUniqueNames, allFieldList);
+        // 找出需要修改的索引
+
+        if (dropIndexAndUniqueFieldList.size() != 0) {
+            baseTableMap.getDropIndexAndUniqueTable().put(tableName, new TableConfig(dropIndexAndUniqueFieldList));
+        }
+        if (addIndexFieldList.size() != 0) {
+            baseTableMap.getAddIndexTable().put(tableName, new TableConfig(addIndexFieldList));
+        }
+
+
+        // 验证对比从model中解析的allFieldList与从数据库查出来的columnList
+        // 找出增加的字段
+        List<Object> addFieldList = getAddFieldList(allFieldList, columnNames);
+
+        // 找出删除的字段
+        List<Object> removeFieldList = getRemoveFieldList(columnNames, allFieldList);
+
+        // 找出更新的字段
+        List<Object> modifyFieldList = getModifyFieldList(tableColumnList, allFieldList);
+
+        // 找出需要删除主键的字段
+        List<Object> dropKeyFieldList = getDropKeyFieldList(tableColumnList, allFieldList);
 
         if (addFieldList.size() != 0) {
             baseTableMap.getAddTable().put(tableName, new TableConfig(addFieldList));
@@ -204,15 +218,27 @@ public class MySqlTableHandlerService implements TableHandlerService {
         if (dropKeyFieldList.size() != 0) {
             baseTableMap.getDropKeyTable().put(tableName, new TableConfig(dropKeyFieldList));
         }
-        if (dropIndexAndUniqueFieldList.size() != 0) {
-            baseTableMap.getDropIndexAndUniqueTable().put(tableName, new TableConfig(dropIndexAndUniqueFieldList));
+
+    }
+
+    /**
+     * 获取索引
+     */
+    public List<MySqlIndexInfo> getIndexList(Class<?> clas){
+        List<MySqlIndex> indexList = Optional.ofNullable(clas.getAnnotation(MySqlIndexes.class))
+                .map(MySqlIndexes::value)
+                .map(ListUtil::of)
+                .orElse(null);
+        if (CollUtil.isEmpty(indexList)) {
+            indexList = ListUtil.of(clas.getAnnotation(MySqlIndex.class));
         }
-        if (addIndexFieldList.size() != 0) {
-            baseTableMap.getAddIndexTable().put(tableName, new TableConfig(addIndexFieldList));
-        }
-        if (addUniqueFieldList.size() != 0) {
-            baseTableMap.getAddUniqueTable().put(tableName, new TableConfig(addUniqueFieldList));
-        }
+        return indexList.stream()
+                .map(index -> new MySqlIndexInfo()
+                        .setType(index.type())
+                        .setName(index.name())
+                        .setColumns(Arrays.asList(index.columns()))
+                        .setComment(index.comment()))
+                .collect(Collectors.toList());
     }
 
     /**
@@ -221,7 +247,7 @@ public class MySqlTableHandlerService implements TableHandlerService {
     private boolean getCreateOrModify(String tableName, Class<?> clas, List<Object> allFieldList, BaseTableMap baseTableMap){
 
         // 先查该表是否以存在
-        MySqlTableInfo tableInfo = mysqlTableModifyMapper.findTableByTableName(tableName);
+        SysMySqlTableInfo tableInfo = mysqlTableModifyMapper.findTableByTableName(tableName);
 
         // 获取表注释
         String tableComment = ColumnUtils.getTableComment(clas);
@@ -236,13 +262,13 @@ public class MySqlTableHandlerService implements TableHandlerService {
         Map<String, Object> map = new HashMap<>();
         if (Objects.isNull(tableInfo)) {
             if (StrUtil.isNotBlank(tableComment)) {
-                map.put(MySqlTableInfo.TABLE_COMMENT_KEY, tableComment);
+                map.put(SysMySqlTableInfo.TABLE_COMMENT_KEY, tableComment);
             }
             if (tableCharset != null && tableCharset != TableCharset.DEFAULT) {
-                map.put(MySqlTableInfo.TABLE_COLLATION_KEY, tableCharset.name().toLowerCase());
+                map.put(SysMySqlTableInfo.TABLE_COLLATION_KEY, tableCharset.getValue().toLowerCase());
             }
             if (tableEngine != null && tableEngine != MySqlEngineEnum.DEFAULT) {
-                map.put(MySqlTableInfo.TABLE_ENGINE_KEY, tableEngine.toString());
+                map.put(SysMySqlTableInfo.TABLE_ENGINE_KEY, tableEngine.toString());
             }
             baseTableMap.getNewTable().put(tableName, new TableConfig(allFieldList, map));
             baseTableMap.getAddIndexTable().put(tableName, new TableConfig(getAddIndexList(null, allFieldList)));
@@ -252,19 +278,19 @@ public class MySqlTableHandlerService implements TableHandlerService {
         else {
             // 判断表注释是否要更新
             if (StrUtil.isNotBlank(tableComment) && !Objects.equals(tableComment, tableInfo.getTableComment())) {
-                map.put(MySqlTableInfo.TABLE_COMMENT_KEY, tableComment);
+                map.put(SysMySqlTableInfo.TABLE_COMMENT_KEY, tableComment);
             }
             // 判断表字符集是否要更新
             if (tableCharset != null && tableCharset != TableCharset.DEFAULT
-                    && !tableCharset.toString()
+                    && !tableCharset.getValue()
                     .toLowerCase()
-                    .equals(tableInfo.getTableCollation().replace(MySqlTableInfo.TABLE_COLLATION_SUFFIX, ""))) {
-                map.put(MySqlTableInfo.TABLE_COLLATION_KEY, tableCharset.toString().toLowerCase());
+                    .equals(tableInfo.getTableCollation().replace(SysMySqlTableInfo.TABLE_COLLATION_SUFFIX, ""))) {
+                map.put(SysMySqlTableInfo.TABLE_COLLATION_KEY, tableCharset.getValue().toLowerCase());
             }
             // 判断表引擎是否要更新
             if (tableEngine != null && tableEngine != MySqlEngineEnum.DEFAULT
                     && !tableEngine.toString().equals(tableInfo.getEngine())) {
-                map.put(MySqlTableInfo.TABLE_ENGINE_KEY, tableEngine.toString());
+                map.put(SysMySqlTableInfo.TABLE_ENGINE_KEY, tableEngine.toString());
             }
             baseTableMap.getModifyTableProperty().put(tableName, new TableConfig(map));
         }
@@ -273,73 +299,48 @@ public class MySqlTableHandlerService implements TableHandlerService {
 
     /**
      * 找出需要新建的索引
-     * @param allIndexAndUniqueNames 当前数据库的索引很约束名
-     * @param allFieldList model中的所有字段
+     * @param allIndexes 当前数据库的索引
+     * @param allIndexList model中的所有字段
      * @return 需要新建的索引
      */
-    private List<Object> getAddIndexList(Set<String> allIndexAndUniqueNames, List<Object> allFieldList) {
-        List<Object> addIndexFieldList = new ArrayList<>();
-        if (null == allIndexAndUniqueNames) {
-            allIndexAndUniqueNames = new HashSet<>();
+    private List<MySqlIndexInfo> getAddIndexList(List<SysMySqlIndexInfo> allIndexes, List<MySqlIndexInfo> allIndexList) {
+        if (CollUtil.isEmpty(allIndexList)) {
+            return new ArrayList<>(0);
         }
-        for (Object obj : allFieldList) {
-            CreateTableParam createTableParam = (CreateTableParam) obj;
-            if (null != createTableParam.getFiledIndexName()
-                    && !allIndexAndUniqueNames.contains(createTableParam.getFiledIndexName())) {
-                addIndexFieldList.add(createTableParam);
-            }
-        }
-        return addIndexFieldList;
+        List<String> allIndexNames = allIndexes.stream()
+                .map(SysMySqlIndexInfo::getIndexName)
+                .distinct()
+                .collect(Collectors.toList());
+
+        return allIndexList.stream()
+                .filter(index->!allIndexNames.contains(index.getName()))
+                .collect(Collectors.toList());
     }
 
-    /**
-     * 找出需要新建的唯一约束
-     * @param allIndexAndUniqueNames 当前数据库的索引很约束名
-     * @param allFieldList model中的所有字段
-     * @return 需要新建的唯一约束
-     */
-    private List<Object> getAddUniqueList(Set<String> allIndexAndUniqueNames, List<Object> allFieldList) {
-        List<Object> addUniqueFieldList = new ArrayList<>();
-        if (null == allIndexAndUniqueNames) {
-            allIndexAndUniqueNames = new HashSet<>();
-        }
-        for (Object obj : allFieldList) {
-            CreateTableParam createTableParam = (CreateTableParam) obj;
-            if (null != createTableParam.getFiledUniqueName()
-                    && !allIndexAndUniqueNames.contains(createTableParam.getFiledUniqueName())) {
-                addUniqueFieldList.add(createTableParam);
-            }
-        }
-        return addUniqueFieldList;
-    }
 
     /**
-     * 找出需要删除的索引和唯一约束
-     * @param allIndexAndUniqueNames 当前数据库的索引很约束名
-     * @param allFieldList model中的所有字段
-     * @return 需要删除的索引和唯一约束
+     * 找出需要删除的索引
+     * @param allIndexes 当前数据库的索引
+     * @param allIndexList model中所有配置的索引
+     * @return 需要删除的索引名称
      */
-    private List<Object> getDropIndexAndUniqueList(Set<String> allIndexAndUniqueNames, List<Object> allFieldList) {
-        List<Object> dropIndexAndUniqueFieldList = new ArrayList<>();
-        if (null == allIndexAndUniqueNames || allIndexAndUniqueNames.size() == 0) {
-            return dropIndexAndUniqueFieldList;
+    private List<String> getDropIndexAndUniqueList(List<SysMySqlIndexInfo> allIndexes, List<MySqlIndexInfo> allIndexList) {
+        if (CollUtil.isEmpty(allIndexes)) {
+            return new ArrayList<>(0);
         }
-        List<String> currentModelIndexAndUnique = new ArrayList<>();
-        for (Object obj : allFieldList) {
-            CreateTableParam createTableParam = (CreateTableParam) obj;
-            if (null != createTableParam.getFiledIndexName()) {
-                currentModelIndexAndUnique.add(createTableParam.getFiledIndexName());
-            }
-            if (null != createTableParam.getFiledUniqueName()) {
-                currentModelIndexAndUnique.add(createTableParam.getFiledUniqueName());
-            }
-        }
-        for (String string : allIndexAndUniqueNames) {
-            if (!currentModelIndexAndUnique.contains(string)) {
-                dropIndexAndUniqueFieldList.add(string);
-            }
-        }
-        return dropIndexAndUniqueFieldList;
+
+        // 定义的索引名称集合
+        List<String> allFieldNameList = allIndexList.stream()
+                .map(MySqlIndexInfo::getName)
+                .distinct()
+                .collect(Collectors.toList());
+        // 将
+        return allIndexes.stream()
+                .map(SysMySqlIndexInfo::getIndexName)
+                .filter(indexName-> !allFieldNameList.contains(indexName))
+                .distinct()
+                .collect(Collectors.toList());
+
     }
 
     /**
@@ -348,16 +349,16 @@ public class MySqlTableHandlerService implements TableHandlerService {
      * @param allFieldList model中的所有字段
      * @return 需要删除主键的字段
      */
-    private List<Object> getDropKeyFieldList(List<SysMysqlColumns> tableColumnList, List<Object> allFieldList) {
-        Map<String, CreateTableParam> fieldMap = getAllFieldMap(allFieldList);
+    private List<Object> getDropKeyFieldList(List<SysMysqlColumnInfo> tableColumnList, List<Object> allFieldList) {
+        Map<String, ColumnParam> fieldMap = getAllFieldMap(allFieldList);
         List<Object> dropKeyFieldList = new ArrayList<>();
-        for (SysMysqlColumns sysColumn : tableColumnList) {
+        for (SysMysqlColumnInfo sysColumn : tableColumnList) {
             // 数据库中有该字段时
-            CreateTableParam createTableParam = fieldMap.get(sysColumn.getColumnName().toLowerCase());
-            if (createTableParam != null) {
+            ColumnParam columnParam = fieldMap.get(sysColumn.getColumnName().toLowerCase());
+            if (columnParam != null) {
                 // 原本是主键，现在不是了，那么要去做删除主键的操作
-                if ("PRI".equals(sysColumn.getColumnKey()) && !createTableParam.isFieldIsKey()) {
-                    dropKeyFieldList.add(createTableParam);
+                if ("PRI".equals(sysColumn.getColumnKey()) && !columnParam.isFieldIsKey()) {
+                    dropKeyFieldList.add(columnParam);
                 }
 
             }
@@ -369,41 +370,41 @@ public class MySqlTableHandlerService implements TableHandlerService {
      * 根据数据库中表的结构和model中表的结构对比找出修改类型默认值等属性的字段
      * @return 需要修改的字段
      */
-    private List<Object> getModifyFieldList(List<SysMysqlColumns> tableColumnList, List<Object> allFieldList) {
-        Map<String, CreateTableParam> fieldMap = getAllFieldMap(allFieldList);
+    private List<Object> getModifyFieldList(List<SysMysqlColumnInfo> tableColumnList, List<Object> allFieldList) {
+        Map<String, ColumnParam> fieldMap = getAllFieldMap(allFieldList);
         List<Object> modifyFieldList = new ArrayList<>();
-        for (SysMysqlColumns sysColumn : tableColumnList) {
+        for (SysMysqlColumnInfo sysColumn : tableColumnList) {
             // 数据库中有该字段时，验证是否有更新
-            CreateTableParam createTableParam = fieldMap.get(sysColumn.getColumnName().toLowerCase());
-            if (createTableParam != null && !createTableParam.isIgnoreUpdate()) {
+            ColumnParam columnParam = fieldMap.get(sysColumn.getColumnName().toLowerCase());
+            if (columnParam != null && !columnParam.isIgnoreUpdate()) {
                 // 该复制操作时为了解决multiple primary key defined的同时又不会drop primary key
-                CreateTableParam modifyTableParam = createTableParam.clone();
+                ColumnParam modifyTableParam = columnParam.clone();
                 // 1.验证主键
                 // 原本不是主键，现在变成了主键，那么要去做更新
-                if (!"PRI".equals(sysColumn.getColumnKey()) && createTableParam.isFieldIsKey()) {
+                if (!"PRI".equals(sysColumn.getColumnKey()) && columnParam.isFieldIsKey()) {
                     modifyFieldList.add(modifyTableParam);
                     continue;
                 }
                 // 原本是主键，现在依然主键，坚决不能在alter语句后加primary key，否则会报multiple primary
                 // key defined
-                if ("PRI".equals(sysColumn.getColumnKey()) && createTableParam.isFieldIsKey()) {
+                if ("PRI".equals(sysColumn.getColumnKey()) && columnParam.isFieldIsKey()) {
                     modifyTableParam.setFieldIsKey(false);
                 }
                 // 2.验证类型
-                if (!sysColumn.getDataType().equalsIgnoreCase(createTableParam.getFieldType())) {
+                if (!sysColumn.getDataType().equalsIgnoreCase(columnParam.getFieldType())) {
                     modifyFieldList.add(modifyTableParam);
                     continue;
                 }
                 // 3.验证长度个小数点位数
-                String typeAndLength = createTableParam.getFieldType().toLowerCase();
-                if (createTableParam.getFileTypeLength() == 1) {
+                String typeAndLength = columnParam.getFieldType().toLowerCase();
+                if (columnParam.getFileTypeLength() == 1) {
                     // 拼接出类型加长度，比如varchar(1)
-                    typeAndLength = typeAndLength + "(" + createTableParam.getFieldLength() + ")";
+                    typeAndLength = typeAndLength + "(" + columnParam.getFieldLength() + ")";
                 }
-                else if (createTableParam.getFileTypeLength() == 2) {
+                else if (columnParam.getFileTypeLength() == 2) {
                     // 拼接出类型加长度，比如varchar(1)
-                    typeAndLength = typeAndLength + "(" + createTableParam.getFieldLength() + ","
-                            + createTableParam.getFieldDecimalLength() + ")";
+                    typeAndLength = typeAndLength + "(" + columnParam.getFieldLength() + ","
+                            + columnParam.getFieldDecimalLength() + ")";
                 }
 
                 // 判断类型+长度是否相同
@@ -412,35 +413,35 @@ public class MySqlTableHandlerService implements TableHandlerService {
                     continue;
                 }
                 // 5.验证自增
-                if ("auto_increment".equals(sysColumn.getExtra()) && !createTableParam.isFieldIsAutoIncrement()) {
+                if ("auto_increment".equals(sysColumn.getExtra()) && !columnParam.isFieldIsAutoIncrement()) {
                     modifyFieldList.add(modifyTableParam);
                     continue;
                 }
-                if (!"auto_increment".equals(sysColumn.getExtra()) && createTableParam.isFieldIsAutoIncrement()) {
+                if (!"auto_increment".equals(sysColumn.getExtra()) && columnParam.isFieldIsAutoIncrement()) {
                     modifyFieldList.add(modifyTableParam);
                     continue;
                 }
                 // 6.验证默认值
                 if (sysColumn.getColumnDefault() == null || sysColumn.getColumnDefault().equals("")) {
                     // 数据库默认值是null，model中注解设置的默认值不为NULL时，那么需要更新该字段
-                    if (createTableParam.getFieldDefaultValue() != null
-                            && !ColumnUtils.DEFAULT_VALUE.equals(createTableParam.getFieldDefaultValue())) {
+                    if (columnParam.getFieldDefaultValue() != null
+                            && !ColumnUtils.DEFAULT_VALUE.equals(columnParam.getFieldDefaultValue())) {
                         modifyFieldList.add(modifyTableParam);
                         continue;
                     }
                 }
-                else if (!sysColumn.getColumnDefault().equals(createTableParam.getFieldDefaultValue())) {
-                    if (MySqlFieldTypeEnum.BIT.toString().toLowerCase().equals(createTableParam.getFieldType())
-                            && !createTableParam.isFieldDefaultValueNative()) {
-                        if (("true".equals(createTableParam.getFieldDefaultValue())
-                                || "1".equals(createTableParam.getFieldDefaultValue()))
+                else if (!sysColumn.getColumnDefault().equals(columnParam.getFieldDefaultValue())) {
+                    if (MySqlFieldTypeEnum.BIT.toString().toLowerCase().equals(columnParam.getFieldType())
+                            && !columnParam.isFieldDefaultValueNative()) {
+                        if (("true".equals(columnParam.getFieldDefaultValue())
+                                || "1".equals(columnParam.getFieldDefaultValue()))
                                 && !"b'1'".equals(sysColumn.getColumnDefault())) {
                             // 两者不相等时，需要更新该字段
                             modifyFieldList.add(modifyTableParam);
                             continue;
                         }
-                        if (("false".equals(createTableParam.getFieldDefaultValue())
-                                || "0".equals(createTableParam.getFieldDefaultValue()))
+                        if (("false".equals(columnParam.getFieldDefaultValue())
+                                || "0".equals(columnParam.getFieldDefaultValue()))
                                 && !"b'0'".equals(sysColumn.getColumnDefault())) {
                             // 两者不相等时，需要更新该字段
                             modifyFieldList.add(modifyTableParam);
@@ -454,22 +455,22 @@ public class MySqlTableHandlerService implements TableHandlerService {
                     }
                 }
                 // 7.验证是否可以为null(主键不参与是否为null的更新)
-                if (sysColumn.getIsNullable().equals("NO") && !createTableParam.isFieldIsKey()) {
-                    if (createTableParam.isFieldIsNull()) {
+                if (sysColumn.getIsNullable().equals("NO") && !columnParam.isFieldIsKey()) {
+                    if (columnParam.isFieldIsNull()) {
                         // 一个是可以一个是不可用，所以需要更新该字段
                         modifyFieldList.add(modifyTableParam);
                         continue;
                     }
                 }
-                else if (sysColumn.getIsNullable().equals("YES") && !createTableParam.isFieldIsKey()) {
-                    if (!createTableParam.isFieldIsNull()) {
+                else if (sysColumn.getIsNullable().equals("YES") && !columnParam.isFieldIsKey()) {
+                    if (!columnParam.isFieldIsNull()) {
                         // 一个是可以一个是不可用，所以需要更新该字段
                         modifyFieldList.add(modifyTableParam);
                         continue;
                     }
                 }
                 // 8.验证注释
-                if (!sysColumn.getColumnComment().equals(createTableParam.getFieldComment())) {
+                if (!sysColumn.getColumnComment().equals(columnParam.getFieldComment())) {
                     modifyFieldList.add(modifyTableParam);
                 }
             }
@@ -480,12 +481,12 @@ public class MySqlTableHandlerService implements TableHandlerService {
     /**
      * 将allFieldList转换为Map结构
      */
-    private Map<String, CreateTableParam> getAllFieldMap(List<Object> allFieldList) {
+    private Map<String, ColumnParam> getAllFieldMap(List<Object> allFieldList) {
         // 将fieldList转成Map类型，字段名作为主键
-        Map<String, CreateTableParam> fieldMap = new HashMap<>();
+        Map<String, ColumnParam> fieldMap = new HashMap<>();
         for (Object obj : allFieldList) {
-            CreateTableParam createTableParam = (CreateTableParam) obj;
-            fieldMap.put(createTableParam.getFieldName().toLowerCase(), createTableParam);
+            ColumnParam columnParam = (ColumnParam) obj;
+            fieldMap.put(columnParam.getFieldName().toLowerCase(), columnParam);
         }
         return fieldMap;
     }
@@ -497,7 +498,7 @@ public class MySqlTableHandlerService implements TableHandlerService {
      */
     private List<Object> getRemoveFieldList(List<String> columnNames, List<Object> allFieldList) {
         List<String> toLowerCaseColumnNames = ClassTools.toLowerCase(columnNames);
-        Map<String, CreateTableParam> fieldMap = getAllFieldMap(allFieldList);
+        Map<String, ColumnParam> fieldMap = getAllFieldMap(allFieldList);
         // 用于存删除的字段
         List<Object> removeFieldList = new ArrayList<>();
         for (String fieldNm : toLowerCaseColumnNames) {
@@ -520,9 +521,9 @@ public class MySqlTableHandlerService implements TableHandlerService {
         List<String> toLowerCaseColumnNames = ClassTools.toLowerCase(columnNames);
         List<Object> addFieldList = new ArrayList<>();
         for (Object obj : allFieldList) {
-            CreateTableParam createTableParam = (CreateTableParam) obj;
+            ColumnParam columnParam = (ColumnParam) obj;
             // 循环新的model中的字段，判断是否在数据库中已经存在
-            if (!toLowerCaseColumnNames.contains(createTableParam.getFieldName().toLowerCase())) {
+            if (!toLowerCaseColumnNames.contains(columnParam.getFieldName().toLowerCase())) {
                 // 不存在，表示要在数据库中增加该字段
                 addFieldList.add(obj);
             }
@@ -538,7 +539,7 @@ public class MySqlTableHandlerService implements TableHandlerService {
     public List<Object> getAllFields(Class<?> clas) {
         String idxPrefix = mybatisTableModifyProperties.getPrefixIndex();
         String uniPrefix = mybatisTableModifyProperties.getPrefixUnique();
-        List<CreateTableParam> fieldList = new ArrayList<>();
+        List<ColumnParam> fieldList = new ArrayList<>();
         Field[] fields = clas.getDeclaredFields();
 
         // 判断是否有父类，如果有拉取父类的field，这里支持多层继承
@@ -548,7 +549,7 @@ public class MySqlTableHandlerService implements TableHandlerService {
         for (Field field : fields) {
             // 判断方法中是否有指定注解类型的注解
             if (ColumnUtils.hasColumn(field, clas)) {
-                CreateTableParam param = new CreateTableParam();
+                ColumnParam param = new ColumnParam();
                 param.setFieldName(ColumnUtils.getColumnName(field, clas));
                 param.setOrder(ColumnUtils.getColumnOrder(field, clas));
                 MySqlTypeAndLength mySqlTypeAndLength = getMySqlTypeAndLength(field, clas);
@@ -568,15 +569,15 @@ public class MySqlTableHandlerService implements TableHandlerService {
                 param.setFieldDefaultValueNative(ColumnUtils.getDefaultValueNative(field, clas));
                 param.setFieldComment(ColumnUtils.getComment(field, clas));
                 // 获取当前字段的@Index注解
-                Index index = field.getAnnotation(Index.class);
-                if (null != index) {
-                    String[] indexValue = index.columns();
+                MySqlIndex mySqlIndex = field.getAnnotation(MySqlIndex.class);
+                if (null != mySqlIndex) {
+                    String[] indexValue = mySqlIndex.columns();
                     param
                         .setFiledIndexName(
-                                (index.value() == null || index.value().equals(""))
+                                (mySqlIndex.value() == null || mySqlIndex.value().equals(""))
                                         ? (idxPrefix + ((indexValue.length == 0)
                                                 ? ColumnUtils.getColumnName(field, clas) : stringArrFormat(indexValue)))
-                                        : idxPrefix + index.value());
+                                        : idxPrefix + mySqlIndex.value());
                     param.setFiledIndexValue(
                             indexValue.length == 0 ? Collections.singletonList(ColumnUtils.getColumnName(field, clas))
                                     : Arrays.asList(indexValue));
@@ -602,7 +603,7 @@ public class MySqlTableHandlerService implements TableHandlerService {
             }
         }
         // 进行排序
-        fieldList.sort(Comparator.comparingInt(CreateTableParam::getOrder));
+        fieldList.sort(Comparator.comparingInt(ColumnParam::getOrder));
         return new ArrayList<>(fieldList);
     }
 
@@ -660,7 +661,7 @@ public class MySqlTableHandlerService implements TableHandlerService {
      * Mysql 类型和长度
      */
     public MySqlTypeAndLength getMySqlTypeAndLength(Field field, Class<?> clazz) {
-        Column column = ColumnUtils.getColumn(field, clazz);
+        DbColumn column = ColumnUtils.getColumn(field, clazz);
         if (!ColumnUtils.hasColumn(field, clazz)) {
             throw new RuntimeException("字段名：" + field.getName() + "没有字段标识的注解，异常抛出！");
         }

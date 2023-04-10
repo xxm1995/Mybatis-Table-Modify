@@ -13,7 +13,7 @@ import java.lang.annotation.*;
 @Target(ElementType.TYPE)
 @Retention(RetentionPolicy.RUNTIME)
 @Documented
-public @interface Table {
+public @interface DbTable {
 
     /**
      * 表名
@@ -26,12 +26,12 @@ public @interface Table {
     String value() default "";
 
     /**
-     * 表注释，也可以使用@TableComment注解代替
+     * 表注释，也可以使用
      */
     String comment() default "";
 
     /**
-     * 表字符集，也可以使用@TableCharset注解代替
+     * 表字符集，也可以使用
      * @see cn.bootx.mybatis.table.modify.constants.TableCharset
      */
     TableCharset charset() default TableCharset.DEFAULT;

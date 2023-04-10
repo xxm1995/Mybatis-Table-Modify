@@ -2,10 +2,10 @@ package cn.bootx.mybatis.table.modify.impl.mysql.mapper;
 
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
-import cn.bootx.mybatis.table.modify.impl.mysql.entity.SysMysqlColumns;
-import cn.bootx.mybatis.table.modify.impl.mysql.entity.MySqlTableInfo;
+import cn.bootx.mybatis.table.modify.impl.mysql.entity.SysMySqlIndexInfo;
+import cn.bootx.mybatis.table.modify.impl.mysql.entity.SysMysqlColumnInfo;
+import cn.bootx.mybatis.table.modify.impl.mysql.entity.SysMySqlTableInfo;
 import cn.bootx.mybatis.table.modify.domain.TableConfig;
 import com.baomidou.mybatisplus.annotation.InterceptorIgnore;
 import org.apache.ibatis.annotations.Param;
@@ -28,16 +28,23 @@ public interface MySqlTableModifyMapper {
     /**
      * 根据表名查询表在库中是否存在
      * @param tableName 表结构的map
-     * @return MySqlTableInfo
+     * @return SysMySqlTableInfo
      */
-    MySqlTableInfo findTableByTableName(@Param("tableName") String tableName);
+    SysMySqlTableInfo findTableByTableName(@Param("tableName") String tableName);
 
     /**
      * 根据表名查询库中该表的字段结构等信息
      * @param tableName 表结构的map
      * @return 表的字段结构等信息
      */
-    List<SysMysqlColumns> findTableEnsembleByTableName(@Param("tableName") String tableName);
+    List<SysMysqlColumnInfo> findTableEnsembleByTableName(@Param("tableName") String tableName);
+
+    /**
+     * 查询当前表存在的索引(除了主键索引primary)
+     * @param tableMap 表名
+     * @return 索引名列表
+     */
+    List<SysMySqlIndexInfo> findTableIndexByTableName(@Param("tableMap") Map<String, String> tableMap);
 
     /**
      * 增加字段
@@ -76,17 +83,10 @@ public interface MySqlTableModifyMapper {
     void dropTableByName(@Param("tableName") String tableName);
 
     /**
-     * 查询当前表存在的索引(除了主键索引primary)
-     * @param tableMap 表名
-     * @return 索引名列表
-     */
-    Set<String> findTableIndexByTableName(@Param("tableMap") Map<String, String> tableMap);
-
-    /**
      * 删除表索引
      * @param tableMap
      */
-    void dropTabelIndex(@Param("tableMap") Map<String, Object> tableMap);
+    void dropTableIndex(@Param("tableMap") Map<String, Object> tableMap);
 
     /**
      * 创建索引

@@ -11,7 +11,7 @@ import java.lang.annotation.*;
 @Target(ElementType.FIELD)
 @Retention(RetentionPolicy.RUNTIME)
 @Documented
-public @interface Column {
+public @interface DbColumn {
 
     /**
      * 字段名, 不填默认使用属性名作为表字段名

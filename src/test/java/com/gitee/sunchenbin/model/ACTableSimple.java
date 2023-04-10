@@ -1,6 +1,7 @@
 package com.gitee.sunchenbin.model;
 
 import cn.bootx.mybatis.table.modify.annotation.*;
+import cn.bootx.mybatis.table.modify.impl.mysql.annotation.MySqlIndex;
 
 import java.math.BigDecimal;
 import java.util.Date;
@@ -8,30 +9,29 @@ import java.util.Date;
 /**
  * 全部采用actable自有的注解
  */
-@Table(comment = "actable简单配置")
+@DbTable(comment = "actable简单配置")
 public class ACTableSimple {
 
     @IsKey
     private Long id;
 
-    @Column
-    @Index
+    @DbColumn
+    @MySqlIndex
     private String name;
 
-    @Column
+    @DbColumn
     private Date createTime;
 
-    @Column(defaultValue = "false")
+    @DbColumn(defaultValue = "false")
     private Boolean isTrue;
 
-    @Column
+    @DbColumn
     private Integer age;
 
-    @Column
+    @DbColumn
     private BigDecimal price;
 
-    @Column
-    @Unique
+    @DbColumn
     private String identitycard;
 
 }

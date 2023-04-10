@@ -1,21 +1,17 @@
 package cn.bootx.mybatis.table.modify.utils;
 
-import cn.bootx.mybatis.table.modify.annotation.Column;
+import cn.bootx.mybatis.table.modify.annotation.DbColumn;
 import cn.bootx.mybatis.table.modify.annotation.EnableTimeSuffix;
 import cn.bootx.mybatis.table.modify.annotation.IsNativeDefValue;
-import cn.bootx.mybatis.table.modify.annotation.Table;
-import cn.bootx.mybatis.table.modify.annotation.impl.ColumnImpl;
+import cn.bootx.mybatis.table.modify.annotation.DbTable;
+import cn.bootx.mybatis.table.modify.annotation.impl.DbColumnImpl;
 import cn.bootx.mybatis.table.modify.constants.TableCharset;
-import cn.bootx.mybatis.table.modify.impl.mysql.constants.MySql4JavaType;
-import cn.bootx.mybatis.table.modify.impl.mysql.constants.MySqlFieldTypeEnum;
-import cn.bootx.mybatis.table.modify.impl.mysql.entity.MySqlTypeAndLength;
 import cn.hutool.core.util.StrUtil;
 import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
 import com.google.common.base.CaseFormat;
 import org.apache.commons.lang3.time.DateFormatUtils;
-import org.springframework.beans.BeanUtils;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
@@ -44,7 +40,7 @@ public class ColumnUtils {
      * 获取表名称
      */
     public static String getTableName(Class<?> clazz) {
-        Table table = clazz.getAnnotation(Table.class);
+        DbTable table = clazz.getAnnotation(DbTable.class);
         TableName tableNamePlus = clazz.getAnnotation(TableName.class);
         EnableTimeSuffix enableTimeSuffix = clazz.getAnnotation(EnableTimeSuffix.class);
         if (!hasTableAnnotation(clazz)) {
@@ -74,7 +70,7 @@ public class ColumnUtils {
      * 获取表备注
      */
     public static String getTableComment(Class<?> clazz) {
-        Table table = clazz.getAnnotation(Table.class);
+        DbTable table = clazz.getAnnotation(DbTable.class);
         if (!hasTableAnnotation(clazz)) {
             return "";
         }
@@ -88,7 +84,7 @@ public class ColumnUtils {
      * 获取表字符集
      */
     public static TableCharset getTableCharset(Class<?> clazz) {
-        Table table = clazz.getAnnotation(Table.class);
+        DbTable table = clazz.getAnnotation(DbTable.class);
         if (!hasTableAnnotation(clazz)) {
             return null;
         }
@@ -104,7 +100,7 @@ public class ColumnUtils {
      * @return
      */
     public static String getColumnName(Field field, Class<?> clazz) {
-        Column column = getColumn(field, clazz);
+        DbColumn column = getColumn(field, clazz);
         TableField tableField = field.getAnnotation(TableField.class);
         TableId tableId = field.getAnnotation(TableId.class);
         if (!hasColumn(field, clazz)) {
@@ -130,11 +126,11 @@ public class ColumnUtils {
      * @return
      */
     public static int getColumnOrder(Field field, Class<?> clazz) {
-        Column column = getColumn(field, clazz);
+        DbColumn column = getColumn(field, clazz);
         if (!hasColumn(field, clazz)) {
             return 0;
         }
-        return Optional.ofNullable(column).map(Column::order).orElse(0);
+        return Optional.ofNullable(column).map(DbColumn::order).orElse(0);
     }
 
     /**
@@ -148,7 +144,7 @@ public class ColumnUtils {
      * 是否是主键
      */
     public static boolean isKey(Field field, Class<?> clazz) {
-        Column column = getColumn(field, clazz);
+        DbColumn column = getColumn(field, clazz);
         if (!hasColumn(field, clazz)) {
             return false;
         }
@@ -165,7 +161,7 @@ public class ColumnUtils {
      * 是否是自增主键
      */
     public static boolean isAutoIncrement(Field field, Class<?> clazz) {
-        Column column = getColumn(field, clazz);
+        DbColumn column = getColumn(field, clazz);
         if (!hasColumn(field, clazz)) {
             return false;
         }
@@ -179,7 +175,7 @@ public class ColumnUtils {
      * @return
      */
     public static Boolean isNull(Field field, Class<?> clazz) {
-        Column column = getColumn(field, clazz);
+        DbColumn column = getColumn(field, clazz);
         if (!hasColumn(field, clazz)) {
             return true;
         }
@@ -198,7 +194,7 @@ public class ColumnUtils {
      * 获取字段的备注
      */
     public static String getComment(Field field, Class<?> clazz) {
-        Column column = getColumn(field, clazz);
+        DbColumn column = getColumn(field, clazz);
         if (!hasColumn(field, clazz)) {
             return null;
         }
@@ -212,7 +208,7 @@ public class ColumnUtils {
      * 获取默认值
      */
     public static String getDefaultValue(Field field, Class<?> clazz) {
-        Column column = getColumn(field, clazz);
+        DbColumn column = getColumn(field, clazz);
         if (!hasColumn(field, clazz)) {
             return null;
         }
@@ -241,10 +237,10 @@ public class ColumnUtils {
 
 
     /**
-     * 是否有 Table 注解
+     * 是否有 DbTable 注解
      */
     public static boolean hasTableAnnotation(Class<?> clazz) {
-        Table table = clazz.getAnnotation(Table.class);
+        DbTable table = clazz.getAnnotation(DbTable.class);
         return table != null;
     }
 
@@ -264,7 +260,7 @@ public class ColumnUtils {
         if (Modifier.isStatic(field.getModifiers())) {
             return false;
         }
-        Column column = field.getAnnotation(Column.class);
+        DbColumn column = field.getAnnotation(DbColumn.class);
         TableField tableField = field.getAnnotation(TableField.class);
         TableId tableId = field.getAnnotation(TableId.class);
         // 判断是否忽略该字段
@@ -281,20 +277,20 @@ public class ColumnUtils {
     /**
      * 获取列注解
      */
-    public static Column getColumn(Field field, Class<?> clazz) {
+    public static DbColumn getColumn(Field field, Class<?> clazz) {
         // 不参与建表的字段
         String[] excludeFields = excludeFields(clazz);
         if (Arrays.asList(excludeFields).contains(field.getName())) {
             return null;
         }
-        Column column = field.getAnnotation(Column.class);
+        DbColumn column = field.getAnnotation(DbColumn.class);
         if (column != null) {
             return column;
         }
         // 是否开启simple模式
         // 开启了simple模式
         if (isSimple(clazz)) {
-            return new ColumnImpl();
+            return new DbColumnImpl();
         }
         return null;
     }
@@ -304,7 +300,7 @@ public class ColumnUtils {
      */
     private static String[] excludeFields(Class<?> clazz) {
         String[] excludeFields = {};
-        Table tableName = clazz.getAnnotation(Table.class);
+        DbTable tableName = clazz.getAnnotation(DbTable.class);
         if (tableName != null) {
             excludeFields = tableName.excludeFields();
         }
@@ -316,7 +312,7 @@ public class ColumnUtils {
      */
     private static boolean isSimple(Class<?> clazz) {
         boolean isSimple = false;
-        Table tableName = clazz.getAnnotation(Table.class);
+        DbTable tableName = clazz.getAnnotation(DbTable.class);
         if (tableName != null) {
             isSimple = tableName.isSimple();
         }

@@ -2,7 +2,7 @@ package cn.bootx.mybatis.table.modify.impl.mysql.service;
 
 import cn.bootx.mybatis.table.modify.constants.UpdateType;
 import cn.bootx.mybatis.table.modify.domain.BaseTableMap;
-import cn.bootx.mybatis.table.modify.domain.CreateTableParam;
+import cn.bootx.mybatis.table.modify.domain.ColumnParam;
 import cn.bootx.mybatis.table.modify.domain.TableConfig;
 import cn.bootx.mybatis.table.modify.impl.mysql.mapper.MySqlTableModifyMapper;
 import lombok.RequiredArgsConstructor;
@@ -84,7 +84,7 @@ public class MySqlTableModifyService {
                     Map<String, Object> map = new HashMap<>();
                     map.put(key, obj);
                     log.info("开始删除表" + key + "中的索引" + obj);
-                    mysqlTableModifyMapper.dropTabelIndex(map);
+                    mysqlTableModifyMapper.dropTableIndex(map);
                     log.info("完成删除表" + key + "中的索引" + obj);
                 }
             }
@@ -101,7 +101,7 @@ public class MySqlTableModifyService {
                 for (Object obj : entry.getValue().getList()) {
                     Map<String, Object> map = new HashMap<>();
                     map.put(entry.getKey(), obj);
-                    CreateTableParam fieldProperties = (CreateTableParam) obj;
+                    ColumnParam fieldProperties = (ColumnParam) obj;
                     if (null != fieldProperties.getFiledIndexName()) {
                         log.info("开始创建表" + entry.getKey() + "中的索引" + fieldProperties.getFiledIndexName());
                         mysqlTableModifyMapper.addTableIndex(map);
@@ -122,7 +122,7 @@ public class MySqlTableModifyService {
                 for (Object obj : entry.getValue().getList()) {
                     Map<String, Object> map = new HashMap<>();
                     map.put(entry.getKey(), obj);
-                    CreateTableParam fieldProperties = (CreateTableParam) obj;
+                    ColumnParam fieldProperties = (ColumnParam) obj;
                     if (null != fieldProperties.getFiledUniqueName()) {
                         log.info("开始创建表" + entry.getKey() + "中的唯一约束" + fieldProperties.getFiledUniqueName());
                         mysqlTableModifyMapper.addTableUnique(map);
@@ -144,7 +144,7 @@ public class MySqlTableModifyService {
                 for (Object obj : entry.getValue().getList()) {
                     Map<String, Object> map = new HashMap<>();
                     map.put(entry.getKey(), obj);
-                    CreateTableParam fieldProperties = (CreateTableParam) obj;
+                    ColumnParam fieldProperties = (ColumnParam) obj;
                     log.info("开始修改表" + entry.getKey() + "中的字段" + fieldProperties.getFieldName());
                     mysqlTableModifyMapper.modifyTableField(map);
                     log.info("完成修改表" + entry.getKey() + "中的字段" + fieldProperties.getFieldName());
@@ -206,7 +206,7 @@ public class MySqlTableModifyService {
                 for (Object obj : entry.getValue().getList()) {
                     Map<String, Object> map = new HashMap<>();
                     map.put(entry.getKey(), obj);
-                    CreateTableParam fieldProperties = (CreateTableParam) obj;
+                    ColumnParam fieldProperties = (ColumnParam) obj;
                     log.info("开始为表" + entry.getKey() + "增加字段" + fieldProperties.getFieldName());
                     mysqlTableModifyMapper.addTableField(map);
                     log.info("完成为表" + entry.getKey() + "增加字段" + fieldProperties.getFieldName());
@@ -226,7 +226,7 @@ public class MySqlTableModifyService {
                 for (Object obj : entry.getValue().getList()) {
                     Map<String, Object> map = new HashMap<>();
                     map.put(entry.getKey(), obj);
-                    CreateTableParam fieldProperties = (CreateTableParam) obj;
+                    ColumnParam fieldProperties = (ColumnParam) obj;
                     log.info("开始为表" + entry.getKey() + "删除主键" + fieldProperties.getFieldName());
                     mysqlTableModifyMapper.dropKeyTableField(map);
                     log.info("完成为表" + entry.getKey() + "删除主键" + fieldProperties.getFieldName());

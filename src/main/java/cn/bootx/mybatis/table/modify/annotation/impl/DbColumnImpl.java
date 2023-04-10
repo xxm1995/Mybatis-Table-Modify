@@ -1,7 +1,6 @@
 package cn.bootx.mybatis.table.modify.annotation.impl;
 
-import cn.bootx.mybatis.table.modify.annotation.Column;
-import cn.bootx.mybatis.table.modify.impl.mysql.constants.MySqlFieldTypeEnum;
+import cn.bootx.mybatis.table.modify.annotation.DbColumn;
 import cn.bootx.mybatis.table.modify.utils.ColumnUtils;
 
 import java.lang.annotation.Annotation;
@@ -11,7 +10,7 @@ import java.lang.annotation.Annotation;
  * @author chenbin
  * @date 2020/12/7
  */
-public class ColumnImpl implements Column {
+public class DbColumnImpl implements DbColumn {
 
     @Override
     public String value() {
