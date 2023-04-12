@@ -3,9 +3,9 @@ package cn.bootx.mybatis.table.modify.impl.mysql.mapper;
 import java.util.List;
 import java.util.Map;
 
-import cn.bootx.mybatis.table.modify.impl.mysql.entity.SysMySqlIndexInfo;
-import cn.bootx.mybatis.table.modify.impl.mysql.entity.SysMysqlColumnInfo;
-import cn.bootx.mybatis.table.modify.impl.mysql.entity.SysMySqlTableInfo;
+import cn.bootx.mybatis.table.modify.impl.mysql.entity.MySqlTableIndexInfo;
+import cn.bootx.mybatis.table.modify.impl.mysql.entity.MySqlTableInfo;
+import cn.bootx.mybatis.table.modify.impl.mysql.entity.MysqlTableColumnInfo;
 import cn.bootx.mybatis.table.modify.domain.TableConfig;
 import com.baomidou.mybatisplus.annotation.InterceptorIgnore;
 import org.apache.ibatis.annotations.Param;
@@ -28,23 +28,30 @@ public interface MySqlTableModifyMapper {
     /**
      * 根据表名查询表在库中是否存在
      * @param tableName 表结构的map
-     * @return SysMySqlTableInfo
+     * @return 是否存在
      */
-    SysMySqlTableInfo findTableByTableName(@Param("tableName") String tableName);
+    boolean existsByTableName(@Param("tableName") String tableName);
+
+    /**
+     * 查据表名询表信息
+     * @param tableName 表结构的map
+     * @return MySqlTableInfo
+     */
+    MySqlTableInfo findTableByTableName(@Param("tableName") String tableName);
 
     /**
      * 根据表名查询库中该表的字段结构等信息
      * @param tableName 表结构的map
      * @return 表的字段结构等信息
      */
-    List<SysMysqlColumnInfo> findTableEnsembleByTableName(@Param("tableName") String tableName);
+    List<MysqlTableColumnInfo> findColumnByTableName(@Param("tableName") String tableName);
 
     /**
      * 查询当前表存在的索引(除了主键索引primary)
-     * @param tableMap 表名
+     * @param tableName 表名
      * @return 索引名列表
      */
-    List<SysMySqlIndexInfo> findTableIndexByTableName(@Param("tableMap") Map<String, String> tableMap);
+    List<MySqlTableIndexInfo> findIndexByTableName(@Param("tableName") String tableName);
 
     /**
      * 增加字段

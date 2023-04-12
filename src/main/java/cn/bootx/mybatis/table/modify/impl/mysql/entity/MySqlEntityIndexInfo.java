@@ -15,7 +15,7 @@ import java.util.List;
 @Getter
 @Setter
 @Accessors(chain = true)
-public class MySqlIndexInfo {
+public class MySqlEntityIndexInfo {
 
     /** 类型 */
     private MySqlIndexType type;

@@ -4,6 +4,7 @@ import cn.bootx.mybatis.table.modify.impl.mysql.entity.MySqlTypeAndLength;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Objects;
 
 /**
  * Mysql和Java类型映射关系
@@ -14,7 +15,6 @@ import java.util.Map;
 public class MySql4JavaType {
 
     private static final Map<String, MySqlFieldTypeEnum> TYPE_MAP = new HashMap<>();
-    private static final Map<String, MySqlTypeAndLength> MYSQL_TYPE_AND_LENGTH_MAP = new HashMap<>();
     static {
         TYPE_MAP.put("class java.lang.String", MySqlFieldTypeEnum.VARCHAR);
         TYPE_MAP.put("class java.lang.Long", MySqlFieldTypeEnum.BIGINT);
@@ -40,26 +40,24 @@ public class MySql4JavaType {
         TYPE_MAP.put("short", MySqlFieldTypeEnum.SMALLINT);
         TYPE_MAP.put("char", MySqlFieldTypeEnum.VARCHAR);
 
-        for (MySqlFieldTypeEnum type : MySqlFieldTypeEnum.values()) {
-            MYSQL_TYPE_AND_LENGTH_MAP.put(type.toString().toLowerCase(),
-                    new MySqlTypeAndLength(type.getLengthCount(),
-                            type.getLengthDefault(),
-                            type.getDecimalLengthDefault(),
-                            type.toString().toLowerCase()));
-        }
     }
 
     /**
      * 获取类型
-     * @param className 类名称
+     * @param className 类型名称
      * @return MySQL类型信息
      */
-    public static MySqlFieldTypeEnum get(String className) {
-        return TYPE_MAP.get(className);
-    }
-
-    public static MySqlTypeAndLength getTypeAndLength(String type){
-       return MYSQL_TYPE_AND_LENGTH_MAP.get(type);
+    public static MySqlTypeAndLength getTypeAndLength(String className){
+        MySqlFieldTypeEnum typeEnum = TYPE_MAP.get(className);
+        if (Objects.isNull(typeEnum)){
+            return null;
+        }
+        return new MySqlTypeAndLength(
+                typeEnum.toString().toLowerCase(),
+                typeEnum.getParamCount(),
+                typeEnum.getLengthDefault(),
+                typeEnum.getDecimalLengthDefault()
+                );
     }
 
 }

@@ -4,7 +4,7 @@
 
     <!-- 强制指定查询表结构映射字段，避免被mybatis下划线转驼峰配置影响，导致查询不到值  -->
     <!-- =行信息 -->
-    <resultMap id="MysqlColumnsResultMap" type="cn.bootx.mybatis.table.modify.impl.mysql.entity.SysMysqlColumnInfo">
+    <resultMap id="MysqlColumnsResultMap" type="cn.bootx.mybatis.table.modify.impl.mysql.entity.MysqlTableColumnInfo">
         <result property="tableSchema" column="table_schema"/>
         <result property="tableName" column="table_name"/>
         <result property="columnName" column="column_name"/>
@@ -25,7 +25,7 @@
         <result property="columnComment" column="column_comment"/>
     </resultMap>
     <!-- 表信息 -->
-    <resultMap id="MysqlTableResultMap" type="cn.bootx.mybatis.table.modify.impl.mysql.entity.SysMySqlTableInfo">
+    <resultMap id="MysqlTableResultMap" type="cn.bootx.mybatis.table.modify.impl.mysql.entity.MySqlTableInfo">
         <result property="tableCatalog" column="table_catalog"/>
         <result property="tableSchema" column="table_schema"/>
         <result property="tableName" column="table_name"/>
@@ -50,7 +50,7 @@
     </resultMap>
 
     <!-- 索引信息 -->
-    <resultMap id="MysqlIndexResultMap" type="cn.bootx.mybatis.table.modify.impl.mysql.entity.SysMySqlIndexInfo">
+    <resultMap id="MysqlIndexResultMap" type="cn.bootx.mybatis.table.modify.impl.mysql.entity.MySqlTableIndexInfo">
         <result property="indexName" column="index_name"/>
         <result property="indexType" column="index_type"/>
         <result property="indexComment" column="index_comment"/>
@@ -172,13 +172,16 @@
     </select>
 
     <!-- 验证表是否存在 -->
-    <select id="findTableByTableName" resultMap="MysqlTableResultMap" parameterType="String">
-        select * from information_schema.tables
+    <select id="existsByTableName" resultType="boolean" parameterType="String">
+        select count(*) from information_schema.tables
         where table_name = #{tableName} and table_schema = (select database())
     </select>
 
     <!-- 根据表名查询表的结构 -->
-    <select id="findTableEnsembleByTableName" resultMap="MysqlColumnsResultMap" parameterType="String">
+    <select id="findTableByTableName" resultMap="MysqlTableResultMap">
+    </select>
+    <!-- 根据表名查询库中该表的字段结构等信息 -->
+    <select id="findColumnByTableName" resultMap="MysqlColumnsResultMap" parameterType="String">
         select * from information_schema.columns where table_name = #{tableName} and table_schema = (select database())
     </select>
 
@@ -246,21 +249,16 @@
 
     </select>
 
-    <!-- 验证表是否存在 -->
+    <!-- 删除表 -->
     <select id="dropTableByName" parameterType="String">
         DROP TABLE IF EXISTS `${tableName}`;
     </select>
 
     <!-- 查询当前表存在的索引, 除了主键索引primary -->
-    <select id="findTableIndexByTableName" resultMap="MysqlIndexResultMap" parameterType="java.util.Map">
-        select index_name,indexType,indexComment,columnName,nonUnique,seqInIndex from information_schema.statistics
+    <select id="findIndexByTableName" resultMap="MysqlIndexResultMap" parameterType="string">
+        select index_name,index_type,index_comment,column_name,non_unique,seq_in_index from information_schema.statistics
         where table_schema = (select database()) and lower(index_name) !='primary'
-        <foreach collection="tableMap" mySqlIndex="key" item="value">
-            <if test="key == 'tableName'">
-                table_name = #{value}
-            </if>
-        </foreach>
-        and
+        and table_name = #{tableName}
     </select>
 
     <!-- 删除索引 -->
@@ -313,4 +311,5 @@
         </foreach>
 
     </select>
+
 </mapper>

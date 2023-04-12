@@ -1,8 +1,8 @@
 package cn.bootx.mybatis.table.modify.impl.mysql.service;
 
 import cn.bootx.mybatis.table.modify.constants.UpdateType;
-import cn.bootx.mybatis.table.modify.domain.BaseTableMap;
-import cn.bootx.mybatis.table.modify.domain.ColumnParam;
+import cn.bootx.mybatis.table.modify.impl.mysql.entity.MySqlModifyMap;
+import cn.bootx.mybatis.table.modify.impl.mysql.entity.MySqlEntityColumn;
 import cn.bootx.mybatis.table.modify.domain.TableConfig;
 import cn.bootx.mybatis.table.modify.impl.mysql.mapper.MySqlTableModifyMapper;
 import lombok.RequiredArgsConstructor;
@@ -43,24 +43,24 @@ public class MySqlTableModifyService {
      * 根据传入的map创建或修改表结构
      * @param baseTableMap 操作sql的数据结构
      */
-    public void modifyTableConstruct(BaseTableMap baseTableMap, UpdateType updateType) {
+    public void modifyTableConstruct(MySqlModifyMap baseTableMap, UpdateType updateType) {
 
         // CREATE模式不做删除和修改操作
         if (updateType != UpdateType.CREATE) {
             // 1. 删除要变更主键的表的原来的字段的主键
-            dropFieldsKey(baseTableMap.getDropKeyTable());
+            dropFieldsKey(baseTableMap.getDropKeys());
             // 2. 删除索引和约束
             dropIndexAndUnique(baseTableMap.getDropIndexAndUniqueTable());
             // 3. 删除字段
-            removeFields(baseTableMap.getRemoveTable());
+            removeFields(baseTableMap.getRemoveColumns());
             // 4. 修改表注释
-            modifyTableComment(baseTableMap.getModifyTableProperty());
+            modifyTableComment(baseTableMap.getModifyComments());
             // 5. 修改字段类型等
-            modifyFields(baseTableMap.getModifyTable());
+            modifyFields(baseTableMap.getUpdateColumns());
         }
 
         // 6. 添加新的字段
-        addFields(baseTableMap.getAddTable());
+        addFields(baseTableMap.getAddColumns());
 
         // 7. 创建索引
         addIndex(baseTableMap.getAddIndexTable());
@@ -101,7 +101,7 @@ public class MySqlTableModifyService {
                 for (Object obj : entry.getValue().getList()) {
                     Map<String, Object> map = new HashMap<>();
                     map.put(entry.getKey(), obj);
-                    ColumnParam fieldProperties = (ColumnParam) obj;
+                    MySqlEntityColumn fieldProperties = (MySqlEntityColumn) obj;
                     if (null != fieldProperties.getFiledIndexName()) {
                         log.info("开始创建表" + entry.getKey() + "中的索引" + fieldProperties.getFiledIndexName());
                         mysqlTableModifyMapper.addTableIndex(map);
@@ -122,7 +122,7 @@ public class MySqlTableModifyService {
                 for (Object obj : entry.getValue().getList()) {
                     Map<String, Object> map = new HashMap<>();
                     map.put(entry.getKey(), obj);
-                    ColumnParam fieldProperties = (ColumnParam) obj;
+                    MySqlEntityColumn fieldProperties = (MySqlEntityColumn) obj;
                     if (null != fieldProperties.getFiledUniqueName()) {
                         log.info("开始创建表" + entry.getKey() + "中的唯一约束" + fieldProperties.getFiledUniqueName());
                         mysqlTableModifyMapper.addTableUnique(map);
@@ -144,7 +144,7 @@ public class MySqlTableModifyService {
                 for (Object obj : entry.getValue().getList()) {
                     Map<String, Object> map = new HashMap<>();
                     map.put(entry.getKey(), obj);
-                    ColumnParam fieldProperties = (ColumnParam) obj;
+                    MySqlEntityColumn fieldProperties = (MySqlEntityColumn) obj;
                     log.info("开始修改表" + entry.getKey() + "中的字段" + fieldProperties.getFieldName());
                     mysqlTableModifyMapper.modifyTableField(map);
                     log.info("完成修改表" + entry.getKey() + "中的字段" + fieldProperties.getFieldName());
@@ -206,7 +206,7 @@ public class MySqlTableModifyService {
                 for (Object obj : entry.getValue().getList()) {
                     Map<String, Object> map = new HashMap<>();
                     map.put(entry.getKey(), obj);
-                    ColumnParam fieldProperties = (ColumnParam) obj;
+                    MySqlEntityColumn fieldProperties = (MySqlEntityColumn) obj;
                     log.info("开始为表" + entry.getKey() + "增加字段" + fieldProperties.getFieldName());
                     mysqlTableModifyMapper.addTableField(map);
                     log.info("完成为表" + entry.getKey() + "增加字段" + fieldProperties.getFieldName());
@@ -226,7 +226,7 @@ public class MySqlTableModifyService {
                 for (Object obj : entry.getValue().getList()) {
                     Map<String, Object> map = new HashMap<>();
                     map.put(entry.getKey(), obj);
-                    ColumnParam fieldProperties = (ColumnParam) obj;
+                    MySqlEntityColumn fieldProperties = (MySqlEntityColumn) obj;
                     log.info("开始为表" + entry.getKey() + "删除主键" + fieldProperties.getFieldName());
                     mysqlTableModifyMapper.dropKeyTableField(map);
                     log.info("完成为表" + entry.getKey() + "删除主键" + fieldProperties.getFieldName());

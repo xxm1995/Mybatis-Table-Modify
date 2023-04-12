@@ -15,5 +15,8 @@ import static cn.bootx.mybatis.table.modify.impl.mysql.constants.MySqlFieldTypeE
 @Retention(RetentionPolicy.RUNTIME)
 @Documented
 public @interface MySqlFieldType {
-    MySqlFieldTypeEnum value() default DEFAULT;
+    /**
+     * 类型
+     */
+    MySqlFieldTypeEnum value();
 }

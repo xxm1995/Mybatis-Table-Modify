@@ -4,6 +4,7 @@ import cn.bootx.mybatis.table.modify.annotation.*;
 import cn.bootx.mybatis.table.modify.configuration.MybatisTableModifyProperties;
 import cn.bootx.mybatis.table.modify.constants.TableCharset;
 import cn.bootx.mybatis.table.modify.handler.TableHandlerService;
+import cn.bootx.mybatis.table.modify.impl.mysql.annotation.MySqlFieldType;
 import cn.bootx.mybatis.table.modify.impl.mysql.annotation.MySqlIndex;
 import cn.bootx.mybatis.table.modify.impl.mysql.annotation.MySqlEngine;
 import cn.bootx.mybatis.table.modify.impl.mysql.annotation.MySqlIndexes;
@@ -17,17 +18,17 @@ import cn.bootx.mybatis.table.modify.utils.ClassTools;
 import cn.bootx.mybatis.table.modify.utils.ColumnUtils;
 import cn.bootx.mybatis.table.modify.constants.DatabaseType;
 import cn.bootx.mybatis.table.modify.constants.UpdateType;
-import cn.bootx.mybatis.table.modify.domain.BaseTableMap;
-import cn.bootx.mybatis.table.modify.domain.ColumnParam;
+import cn.bootx.mybatis.table.modify.impl.mysql.entity.MySqlModifyMap;
+import cn.bootx.mybatis.table.modify.impl.mysql.entity.MySqlEntityColumn;
 import cn.bootx.mybatis.table.modify.domain.TableConfig;
 import cn.hutool.core.collection.CollUtil;
 import cn.hutool.core.collection.ListUtil;
+import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.core.util.StrUtil;
 import com.baomidou.mybatisplus.annotation.TableName;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.checkerframework.common.aliasing.qual.Unique;
-import org.springframework.beans.BeanUtils;
+import lombok.val;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -79,7 +80,7 @@ public class MySqlTableHandlerService implements TableHandlerService {
         Set<Class<?>> classes = ClassScanner.scan(packs, DbTable.class, TableName.class);
 
         // 初始化用于存储各种操作表结构的容器
-        BaseTableMap baseTableMap = new BaseTableMap();
+        MySqlModifyMap baseTableMap = new MySqlModifyMap();
 
         // 表名集合
         List<String> tableNames = new ArrayList<>();
@@ -103,9 +104,9 @@ public class MySqlTableHandlerService implements TableHandlerService {
     /**
      * 根据传入的信息，分别去创建或修改表结构
      */
-    private void createOrModifyTableConstruct(BaseTableMap baseTableMap, UpdateType updateType){
+    private void createOrModifyTableConstruct(MySqlModifyMap baseTableMap, UpdateType updateType){
         // 1. 创建表
-        mySqlTableModifyService.createTable(baseTableMap.getNewTable());
+        mySqlTableModifyService.createTable(baseTableMap.getCreateTables());
         // 2. 修改表结构
         mySqlTableModifyService.modifyTableConstruct(baseTableMap,updateType);
     }
@@ -126,17 +127,97 @@ public class MySqlTableHandlerService implements TableHandlerService {
      * @param clas package中的model的Class
      * @param baseTableMap 用于存储各种操作表结构的容器
      */
-    private void buildTableMapConstruct(Class<?> clas, BaseTableMap baseTableMap,
-            UpdateType updateType) {
+    private void buildTableMapConstruct(Class<?> clas, MySqlModifyMap baseTableMap,
+                                        UpdateType updateType) {
+        // 获取model的tableName
+        String tableName = ColumnUtils.getTableName(clas);
+
+        // 如果配置文件配置的是DROP_CREATE，表示将所有的表删掉重新创建
+        if (updateType == UpdateType.DROP_CREATE) {
+            log.info("由于配置的模式是DROP_CREATE，因此先删除表后续根据结构重建，删除表：{}", tableName);
+            mysqlTableModifyMapper.dropTableByName(tableName);
+        }
+
+        // 先查该表是否以存在
+        if (Objects.isNull(mysqlTableModifyMapper.existsByTableName(tableName))){
+            // 获取表信息
+            getCreateTable(clas,baseTableMap);
+            // 获取建表字段
+            getCreateColumn(clas,baseTableMap);
+            // 获取索引
+            getCreateIndex(clas,baseTableMap);
+        } else {
+            // 获取表信息
+            getModifyTable(clas,baseTableMap);
+            // 获取建表字段
+            getModifyColumn(clas,baseTableMap);
+            // 获取索引
+            getModifyIndex(clas,baseTableMap);
+        }
+
+    }
+
+    /**
+     * 获取创建表锁需要的索引 不包括主键索引
+     * @param clas 实体类
+     * @param baseTableMap 用于存储各种操作MySQL表结构的容器
+     */
+    private void getCreateIndex(Class<?> clas, MySqlModifyMap baseTableMap){
+        // 获取model的tableName
+        String tableName = ColumnUtils.getTableName(clas);
+        // 找出实体类所有的索引
+        List<MySqlEntityIndexInfo> entityIndexes = getEntityIndexes(clas);
+        if (CollUtil.isNotEmpty(entityIndexes)) {
+            baseTableMap.getAddIndexes().put(tableName, entityIndexes);
+        }
+    }
+
+    /**
+     * 获取要进行变动的的索引信息 不包括主键索引
+     * @param clas 实体类
+     * @param baseTableMap 用于存储各种操作MySQL表结构的容器
+     */
+    private void getModifyIndex(Class<?> clas, MySqlModifyMap baseTableMap){
 
         // 获取model的tableName
         String tableName = ColumnUtils.getTableName(clas);
 
-        // 1. 用于存表的全部字段
-        List<Object> allFieldList;
+        // 找出实体类所有的索引
+        List<MySqlEntityIndexInfo> entityIndexes = getEntityIndexes(clas);
+
+        // 查询当前表中全部索引
+        List<MySqlTableIndexInfo> tableIndexes = mysqlTableModifyMapper.findIndexByTableName(tableName);
+
+        // 找出需要删除的索引
+        List<String> dropIndexes = getDropIndexes(tableIndexes, entityIndexes);
+        if (CollUtil.isNotEmpty(dropIndexes)) {
+            baseTableMap.getDropIndexes().put(tableName, dropIndexes);
+        }
+        // 找出需要新增的索引
+        List<MySqlEntityIndexInfo> addIndexes = getAddIndexList(tableIndexes, entityIndexes);
+        if (CollUtil.isNotEmpty(addIndexes)) {
+            baseTableMap.getAddIndexes().put(tableName, addIndexes);
+        }
+        // 找出需要修改的索引
+        List<MySqlEntityIndexInfo> updateIndexes = getUpdateIndexList(tableIndexes, entityIndexes);
+        if (CollUtil.isNotEmpty(addIndexes)) {
+            baseTableMap.getAddIndexes().put(tableName, addIndexes);
+        }
+    }
+
+    /**
+     * 获取建表的字段
+     */
+    public void getCreateColumn(Class<?> clas,  MySqlModifyMap baseTableMap){
+
+        // 获取model的tableName
+        String tableName = ColumnUtils.getTableName(clas);
+
+        // 用于实体类配置的全部字段
+        List<MySqlEntityColumn> allFields;
         try {
-            allFieldList = this.getAllFields(clas);
-            if (allFieldList.size() == 0) {
+            allFields = getAllFields(clas);
+            if (allFields.size() == 0) {
                 log.warn("扫描发现" + clas.getName() + "没有建表字段请检查！");
                 return;
             }
@@ -146,85 +227,75 @@ public class MySqlTableHandlerService implements TableHandlerService {
             throw new RuntimeException(e.getMessage());
         }
 
-        // 如果配置文件配置的是DROP_CREATE，表示将所有的表删掉重新创建
-        if (updateType == UpdateType.DROP_CREATE) {
-            log.info("由于配置的模式是DROP_CREATE，因此先删除表后续根据结构重建，删除表：{}", tableName);
-            mysqlTableModifyMapper.dropTableByName(tableName);
-        }
-
-        // 数据表是需要创建还是更新, 如果是创建则不向下执行
-        if (getCreateOrModify(tableName,clas,allFieldList,baseTableMap)){
-            return;
-        }
-
-        // 已存在时理论上做修改的操作，这里查出该表的结构
-        List<SysMysqlColumnInfo> tableColumnList = mysqlTableModifyMapper.findTableEnsembleByTableName(tableName);
-
         // 从sysColumns中取出我们需要比较的列的List
         // 先取出name用来筛选出增加和删除的字段
-        List<String> columnNames = ClassTools.getPropertyValueList(tableColumnList, SysMysqlColumnInfo.COLUMN_NAME_KEY);
-
-        // 找出所有的索引
-        List<MySqlIndexInfo> indexList = getIndexList(clas);
-
-
-        String uniPrefix = mybatisTableModifyProperties.getPrefixUnique();
-        String idxPrefix = mybatisTableModifyProperties.getPrefixIndex();
-        Map<String, String> paramMap = new HashMap<>();
-        paramMap.put("tableName", tableName);
-        paramMap.put("uniquePrefix", uniPrefix);
-        paramMap.put("indexPrefix", idxPrefix);
-        // 查询当前表中全部索引
-        List<SysMySqlIndexInfo> allIndexes = mysqlTableModifyMapper.findTableIndexByTableName(paramMap);
-
-        // 找出需要删除的索引和唯一约束
-        List<String> dropIndexAndUniqueFieldList = getDropIndexAndUniqueList(allIndexes, indexList);
-
-        // 找出需要新增的索引
-        List<MySqlIndexInfo> addIndexFieldList = getAddIndexList(allIndexes, indexList);
-
-        // 找出需要修改的索引
-
-        if (dropIndexAndUniqueFieldList.size() != 0) {
-            baseTableMap.getDropIndexAndUniqueTable().put(tableName, new TableConfig(dropIndexAndUniqueFieldList));
-        }
-        if (addIndexFieldList.size() != 0) {
-            baseTableMap.getAddIndexTable().put(tableName, new TableConfig(addIndexFieldList));
-        }
-
+        List<String> columnNames = ClassTools.getPropertyValueList(tableColumns, MysqlTableColumnInfo.COLUMN_NAME_KEY);
 
         // 验证对比从model中解析的allFieldList与从数据库查出来的columnList
+
         // 找出增加的字段
-        List<Object> addFieldList = getAddFieldList(allFieldList, columnNames);
+        List<Object> addFieldList = getAddFieldList(allFields, columnNames);
 
         // 找出删除的字段
-        List<Object> removeFieldList = getRemoveFieldList(columnNames, allFieldList);
+        List<Object> removeFieldList = getRemoveFieldList(columnNames, allFields);
 
         // 找出更新的字段
-        List<Object> modifyFieldList = getModifyFieldList(tableColumnList, allFieldList);
+        List<Object> modifyFieldList = getModifyFieldList(tableColumns, allFields);
 
         // 找出需要删除主键的字段
-        List<Object> dropKeyFieldList = getDropKeyFieldList(tableColumnList, allFieldList);
+        List<Object> dropKeyFieldList = getDropKeyFieldList(tableColumns, allFields);
 
         if (addFieldList.size() != 0) {
-            baseTableMap.getAddTable().put(tableName, new TableConfig(addFieldList));
+            baseTableMap.getAddColumns().put(tableName, new TableConfig(addFieldList));
         }
         if (removeFieldList.size() != 0) {
-            baseTableMap.getRemoveTable().put(tableName, new TableConfig(removeFieldList));
+            baseTableMap.getRemoveColumns().put(tableName, new TableConfig(removeFieldList));
         }
         if (modifyFieldList.size() != 0) {
-            baseTableMap.getModifyTable().put(tableName, new TableConfig(modifyFieldList));
+            baseTableMap.getUpdateColumns().put(tableName, new TableConfig(modifyFieldList));
         }
         if (dropKeyFieldList.size() != 0) {
-            baseTableMap.getDropKeyTable().put(tableName, new TableConfig(dropKeyFieldList));
+            baseTableMap.getDropKeys().put(tableName, new TableConfig(dropKeyFieldList));
         }
-
     }
 
     /**
-     * 获取索引
+     * 获取要更新的字段
      */
-    public List<MySqlIndexInfo> getIndexList(Class<?> clas){
+    public void getModifyColumn(Class<?> clas,  MySqlModifyMap baseTableMap) {
+        // 获取model的tableName
+        String tableName = ColumnUtils.getTableName(clas);
+
+        // 用于实体类配置的全部字段
+        List<MySqlEntityColumn> allFields;
+        try {
+            allFields = getAllFields(clas);
+            if (allFields.size() == 0) {
+                log.warn("扫描发现" + clas.getName() + "没有建表字段请检查！");
+                return;
+            }
+        }
+        catch (Exception e) {
+            log.error("表：{}，初始化字段结构失败！", tableName);
+            throw new RuntimeException(e.getMessage());
+        }
+        // 数据库表结构
+        List<MysqlTableColumnInfo> tableColumns = mysqlTableModifyMapper.findColumnByTableName(tableName);
+
+        // 找出需要删除的字段
+
+        // 找出需要新增的字段
+
+        // 找出需要修改的字段
+
+    }
+
+
+
+    /**
+     * 获取实体类配置的索引
+     */
+    private List<MySqlEntityIndexInfo> getEntityIndexes(Class<?> clas){
         List<MySqlIndex> indexList = Optional.ofNullable(clas.getAnnotation(MySqlIndexes.class))
                 .map(MySqlIndexes::value)
                 .map(ListUtil::of)
@@ -233,7 +304,7 @@ public class MySqlTableHandlerService implements TableHandlerService {
             indexList = ListUtil.of(clas.getAnnotation(MySqlIndex.class));
         }
         return indexList.stream()
-                .map(index -> new MySqlIndexInfo()
+                .map(index -> new MySqlEntityIndexInfo()
                         .setType(index.type())
                         .setName(index.name())
                         .setColumns(Arrays.asList(index.columns()))
@@ -242,12 +313,32 @@ public class MySqlTableHandlerService implements TableHandlerService {
     }
 
     /**
+     * 创建表
+     */
+    public void getCreateTable(Class<?> clas,MySqlModifyMap baseTableMap){
+        String tableName = ColumnUtils.getTableName(clas);
+
+        // 获取表注释
+        String tableComment = ColumnUtils.getTableComment(clas);
+
+        // 获取表字符集
+        TableCharset tableCharset = ColumnUtils.getTableCharset(clas);
+
+        // 获取表引擎
+        MySqlEngineEnum tableEngine = getTableEngine(clas);
+    }
+
+    /**
+     * 更新表信息
+     */
+    public void getModifyTable(Class<?> clas,MySqlModifyMap baseTableMap){
+
+    }
+
+    /**
      * 数据表是需要创建还是更新
      */
-    private boolean getCreateOrModify(String tableName, Class<?> clas, List<Object> allFieldList, BaseTableMap baseTableMap){
-
-        // 先查该表是否以存在
-        SysMySqlTableInfo tableInfo = mysqlTableModifyMapper.findTableByTableName(tableName);
+    private boolean getCreateOrModify(String tableName, Class<?> clas, List<Object> allFieldList, MySqlModifyMap baseTableMap){
 
         // 获取表注释
         String tableComment = ColumnUtils.getTableComment(clas);
@@ -262,15 +353,15 @@ public class MySqlTableHandlerService implements TableHandlerService {
         Map<String, Object> map = new HashMap<>();
         if (Objects.isNull(tableInfo)) {
             if (StrUtil.isNotBlank(tableComment)) {
-                map.put(SysMySqlTableInfo.TABLE_COMMENT_KEY, tableComment);
+                map.put(MySqlTableInfo.TABLE_COMMENT_KEY, tableComment);
             }
             if (tableCharset != null && tableCharset != TableCharset.DEFAULT) {
-                map.put(SysMySqlTableInfo.TABLE_COLLATION_KEY, tableCharset.getValue().toLowerCase());
+                map.put(MySqlTableInfo.TABLE_COLLATION_KEY, tableCharset.getValue().toLowerCase());
             }
             if (tableEngine != null && tableEngine != MySqlEngineEnum.DEFAULT) {
-                map.put(SysMySqlTableInfo.TABLE_ENGINE_KEY, tableEngine.toString());
+                map.put(MySqlTableInfo.TABLE_ENGINE_KEY, tableEngine.toString());
             }
-            baseTableMap.getNewTable().put(tableName, new TableConfig(allFieldList, map));
+            baseTableMap.getCreateTables().put(tableName, new TableConfig(allFieldList, map));
             baseTableMap.getAddIndexTable().put(tableName, new TableConfig(getAddIndexList(null, allFieldList)));
             baseTableMap.getAddUniqueTable().put(tableName, new TableConfig(getAddUniqueList(null, allFieldList)));
             return true;
@@ -278,41 +369,41 @@ public class MySqlTableHandlerService implements TableHandlerService {
         else {
             // 判断表注释是否要更新
             if (StrUtil.isNotBlank(tableComment) && !Objects.equals(tableComment, tableInfo.getTableComment())) {
-                map.put(SysMySqlTableInfo.TABLE_COMMENT_KEY, tableComment);
+                map.put(MySqlTableInfo.TABLE_COMMENT_KEY, tableComment);
             }
             // 判断表字符集是否要更新
             if (tableCharset != null && tableCharset != TableCharset.DEFAULT
                     && !tableCharset.getValue()
                     .toLowerCase()
-                    .equals(tableInfo.getTableCollation().replace(SysMySqlTableInfo.TABLE_COLLATION_SUFFIX, ""))) {
-                map.put(SysMySqlTableInfo.TABLE_COLLATION_KEY, tableCharset.getValue().toLowerCase());
+                    .equals(tableInfo.getTableCollation().replace(MySqlTableInfo.TABLE_COLLATION_SUFFIX, ""))) {
+                map.put(MySqlTableInfo.TABLE_COLLATION_KEY, tableCharset.getValue().toLowerCase());
             }
             // 判断表引擎是否要更新
             if (tableEngine != null && tableEngine != MySqlEngineEnum.DEFAULT
                     && !tableEngine.toString().equals(tableInfo.getEngine())) {
-                map.put(SysMySqlTableInfo.TABLE_ENGINE_KEY, tableEngine.toString());
+                map.put(MySqlTableInfo.TABLE_ENGINE_KEY, tableEngine.toString());
             }
-            baseTableMap.getModifyTableProperty().put(tableName, new TableConfig(map));
+            baseTableMap.getModifyComments().put(tableName, new TableConfig(map));
         }
         return false;
     }
 
     /**
      * 找出需要新建的索引
-     * @param allIndexes 当前数据库的索引
-     * @param allIndexList model中的所有字段
+     * @param tableIndexes 当前数据库的索引
+     * @param entityIndexes model中的所有字段
      * @return 需要新建的索引
      */
-    private List<MySqlIndexInfo> getAddIndexList(List<SysMySqlIndexInfo> allIndexes, List<MySqlIndexInfo> allIndexList) {
-        if (CollUtil.isEmpty(allIndexList)) {
+    private List<MySqlEntityIndexInfo> getAddIndexList(List<MySqlTableIndexInfo> tableIndexes, List<MySqlEntityIndexInfo> entityIndexes) {
+        if (CollUtil.isEmpty(entityIndexes)) {
             return new ArrayList<>(0);
         }
-        List<String> allIndexNames = allIndexes.stream()
-                .map(SysMySqlIndexInfo::getIndexName)
+        List<String> allIndexNames = tableIndexes.stream()
+                .map(MySqlTableIndexInfo::getIndexName)
                 .distinct()
                 .collect(Collectors.toList());
 
-        return allIndexList.stream()
+        return entityIndexes.stream()
                 .filter(index->!allIndexNames.contains(index.getName()))
                 .collect(Collectors.toList());
     }
@@ -320,27 +411,81 @@ public class MySqlTableHandlerService implements TableHandlerService {
 
     /**
      * 找出需要删除的索引
-     * @param allIndexes 当前数据库的索引
-     * @param allIndexList model中所有配置的索引
+     * @param tableIndexes 当前数据库的索引
+     * @param entityIndexes model中所有配置的索引
      * @return 需要删除的索引名称
      */
-    private List<String> getDropIndexAndUniqueList(List<SysMySqlIndexInfo> allIndexes, List<MySqlIndexInfo> allIndexList) {
-        if (CollUtil.isEmpty(allIndexes)) {
+    private List<String> getDropIndexes(List<MySqlTableIndexInfo> tableIndexes, List<MySqlEntityIndexInfo> entityIndexes) {
+        if (CollUtil.isEmpty(tableIndexes)) {
             return new ArrayList<>(0);
         }
 
         // 定义的索引名称集合
-        List<String> allFieldNameList = allIndexList.stream()
-                .map(MySqlIndexInfo::getName)
+        List<String> allFieldNameList = entityIndexes.stream()
+                .map(MySqlEntityIndexInfo::getName)
                 .distinct()
                 .collect(Collectors.toList());
-        // 将
-        return allIndexes.stream()
-                .map(SysMySqlIndexInfo::getIndexName)
+        // 将要删除的索引筛选出来
+        return tableIndexes.stream()
+                .map(MySqlTableIndexInfo::getIndexName)
                 .filter(indexName-> !allFieldNameList.contains(indexName))
                 .distinct()
                 .collect(Collectors.toList());
 
+    }
+
+    /**
+     * 找出需要更新的索引
+     * @param tableIndexes 当前数据库的索引
+     * @param entityIndexes model中的所有字段
+     * @return 需要新建的索引
+     */
+    private List<MySqlEntityIndexInfo> getUpdateIndexList(List<MySqlTableIndexInfo> tableIndexes, List<MySqlEntityIndexInfo> entityIndexes) {
+        if (CollUtil.isEmpty(entityIndexes)) {
+            return new ArrayList<>(0);
+        }
+        // 现有的数据库索引配置
+        List<String> tableIndexNames = tableIndexes.stream()
+                .map(MySqlTableIndexInfo::getIndexName)
+                .distinct()
+                .collect(Collectors.toList());
+
+        // 现有的数据库索引配置 MAP
+        val tableIndexMap = tableIndexes.stream()
+                .collect(Collectors.groupingBy(MySqlTableIndexInfo::getIndexName));
+
+        // 把两者都有的索引筛选出来进行对比
+        return entityIndexes.stream()
+                .filter(index->tableIndexNames.contains(index.getName()))
+                .filter(entityIndex->compareIndex(tableIndexMap.get(entityIndex.getName()),entityIndex))
+                .collect(Collectors.toList());
+    }
+
+    /**
+     * 比对索引类型
+     */
+    private boolean compareIndex(List<MySqlTableIndexInfo> tableIndex, MySqlEntityIndexInfo entityIndex){
+        MySqlTableIndexInfo indexInfo = tableIndex.get(0);
+
+        /*
+            获取现有的索引类型
+            普通索引:
+            全文索引:
+            唯一索引:
+         */
+        indexInfo.getIndexType();
+
+
+        // 比对类型
+
+        // 比对索引字段
+        tableIndex.sort(Comparator.comparing(MySqlTableIndexInfo::getSeqInIndex));
+        List<String> columnNames = tableIndex.stream()
+                .map(MySqlTableIndexInfo::getColumnName)
+                .collect(Collectors.toList());
+        entityIndex.
+        // 比对索引备注
+        return true;
     }
 
     /**
@@ -349,12 +494,12 @@ public class MySqlTableHandlerService implements TableHandlerService {
      * @param allFieldList model中的所有字段
      * @return 需要删除主键的字段
      */
-    private List<Object> getDropKeyFieldList(List<SysMysqlColumnInfo> tableColumnList, List<Object> allFieldList) {
-        Map<String, ColumnParam> fieldMap = getAllFieldMap(allFieldList);
+    private List<Object> getDropKeyFieldList(List<MysqlTableColumnInfo> tableColumnList, List<Object> allFieldList) {
+        Map<String, MySqlEntityColumn> fieldMap = getAllFieldMap(allFieldList);
         List<Object> dropKeyFieldList = new ArrayList<>();
-        for (SysMysqlColumnInfo sysColumn : tableColumnList) {
+        for (MysqlTableColumnInfo sysColumn : tableColumnList) {
             // 数据库中有该字段时
-            ColumnParam columnParam = fieldMap.get(sysColumn.getColumnName().toLowerCase());
+            MySqlEntityColumn columnParam = fieldMap.get(sysColumn.getColumnName().toLowerCase());
             if (columnParam != null) {
                 // 原本是主键，现在不是了，那么要去做删除主键的操作
                 if ("PRI".equals(sysColumn.getColumnKey()) && !columnParam.isFieldIsKey()) {
@@ -370,15 +515,15 @@ public class MySqlTableHandlerService implements TableHandlerService {
      * 根据数据库中表的结构和model中表的结构对比找出修改类型默认值等属性的字段
      * @return 需要修改的字段
      */
-    private List<Object> getModifyFieldList(List<SysMysqlColumnInfo> tableColumnList, List<Object> allFieldList) {
-        Map<String, ColumnParam> fieldMap = getAllFieldMap(allFieldList);
+    private List<Object> getModifyFieldList(List<MysqlTableColumnInfo> tableColumnList, List<Object> allFieldList) {
+        Map<String, MySqlEntityColumn> fieldMap = getAllFieldMap(allFieldList);
         List<Object> modifyFieldList = new ArrayList<>();
-        for (SysMysqlColumnInfo sysColumn : tableColumnList) {
+        for (MysqlTableColumnInfo sysColumn : tableColumnList) {
             // 数据库中有该字段时，验证是否有更新
-            ColumnParam columnParam = fieldMap.get(sysColumn.getColumnName().toLowerCase());
+            MySqlEntityColumn columnParam = fieldMap.get(sysColumn.getColumnName().toLowerCase());
             if (columnParam != null && !columnParam.isIgnoreUpdate()) {
                 // 该复制操作时为了解决multiple primary key defined的同时又不会drop primary key
-                ColumnParam modifyTableParam = columnParam.clone();
+                MySqlEntityColumn modifyTableParam = columnParam.clone();
                 // 1.验证主键
                 // 原本不是主键，现在变成了主键，那么要去做更新
                 if (!"PRI".equals(sysColumn.getColumnKey()) && columnParam.isFieldIsKey()) {
@@ -399,11 +544,11 @@ public class MySqlTableHandlerService implements TableHandlerService {
                 String typeAndLength = columnParam.getFieldType().toLowerCase();
                 if (columnParam.getFileTypeLength() == 1) {
                     // 拼接出类型加长度，比如varchar(1)
-                    typeAndLength = typeAndLength + "(" + columnParam.getFieldLength() + ")";
+                    typeAndLength = typeAndLength + "(" + columnParam.getParamCount() + ")";
                 }
                 else if (columnParam.getFileTypeLength() == 2) {
                     // 拼接出类型加长度，比如varchar(1)
-                    typeAndLength = typeAndLength + "(" + columnParam.getFieldLength() + ","
+                    typeAndLength = typeAndLength + "(" + columnParam.getParamCount() + ","
                             + columnParam.getFieldDecimalLength() + ")";
                 }
 
@@ -481,11 +626,11 @@ public class MySqlTableHandlerService implements TableHandlerService {
     /**
      * 将allFieldList转换为Map结构
      */
-    private Map<String, ColumnParam> getAllFieldMap(List<Object> allFieldList) {
+    private Map<String, MySqlEntityColumn> getAllFieldMap(List<Object> allFieldList) {
         // 将fieldList转成Map类型，字段名作为主键
-        Map<String, ColumnParam> fieldMap = new HashMap<>();
+        Map<String, MySqlEntityColumn> fieldMap = new HashMap<>();
         for (Object obj : allFieldList) {
-            ColumnParam columnParam = (ColumnParam) obj;
+            MySqlEntityColumn columnParam = (MySqlEntityColumn) obj;
             fieldMap.put(columnParam.getFieldName().toLowerCase(), columnParam);
         }
         return fieldMap;
@@ -498,7 +643,7 @@ public class MySqlTableHandlerService implements TableHandlerService {
      */
     private List<Object> getRemoveFieldList(List<String> columnNames, List<Object> allFieldList) {
         List<String> toLowerCaseColumnNames = ClassTools.toLowerCase(columnNames);
-        Map<String, ColumnParam> fieldMap = getAllFieldMap(allFieldList);
+        Map<String, MySqlEntityColumn> fieldMap = getAllFieldMap(allFieldList);
         // 用于存删除的字段
         List<Object> removeFieldList = new ArrayList<>();
         for (String fieldNm : toLowerCaseColumnNames) {
@@ -517,11 +662,11 @@ public class MySqlTableHandlerService implements TableHandlerService {
      * @param columnNames 数据库中的结构
      * @return 新增的字段
      */
-    private List<Object> getAddFieldList(List<Object> allFieldList, List<String> columnNames) {
+    private List<MySqlEntityColumn> getAddFieldList(List<MySqlEntityColumn> allFieldList, List<String> columnNames) {
         List<String> toLowerCaseColumnNames = ClassTools.toLowerCase(columnNames);
-        List<Object> addFieldList = new ArrayList<>();
-        for (Object obj : allFieldList) {
-            ColumnParam columnParam = (ColumnParam) obj;
+        List<MySqlEntityColumn> addFieldList = new ArrayList<>();
+        for (MySqlEntityColumn obj : allFieldList) {
+            MySqlEntityColumn columnParam = obj;
             // 循环新的model中的字段，判断是否在数据库中已经存在
             if (!toLowerCaseColumnNames.contains(columnParam.getFieldName().toLowerCase())) {
                 // 不存在，表示要在数据库中增加该字段
@@ -536,10 +681,8 @@ public class MySqlTableHandlerService implements TableHandlerService {
      * @param clas 准备做为创建表依据的class
      * @return 表的全部字段
      */
-    public List<Object> getAllFields(Class<?> clas) {
-        String idxPrefix = mybatisTableModifyProperties.getPrefixIndex();
-        String uniPrefix = mybatisTableModifyProperties.getPrefixUnique();
-        List<ColumnParam> fieldList = new ArrayList<>();
+    public List<MySqlEntityColumn> getAllFields(Class<?> clas) {
+        List<MySqlEntityColumn> fieldList = new ArrayList<>();
         Field[] fields = clas.getDeclaredFields();
 
         // 判断是否有父类，如果有拉取父类的field，这里支持多层继承
@@ -549,69 +692,38 @@ public class MySqlTableHandlerService implements TableHandlerService {
         for (Field field : fields) {
             // 判断方法中是否有指定注解类型的注解
             if (ColumnUtils.hasColumn(field, clas)) {
-                ColumnParam param = new ColumnParam();
-                param.setFieldName(ColumnUtils.getColumnName(field, clas));
-                param.setOrder(ColumnUtils.getColumnOrder(field, clas));
-                MySqlTypeAndLength mySqlTypeAndLength = getMySqlTypeAndLength(field, clas);
-                param.setFieldType(mySqlTypeAndLength.getType().toLowerCase());
-                param.setFileTypeLength(mySqlTypeAndLength.getLengthCount());
-                if (mySqlTypeAndLength.getLengthCount() == 1) {
-                    param.setFieldLength(mySqlTypeAndLength.getLength());
+                MySqlTypeAndLength mySqlTypeAndLength = getTypeAndLength(field, clas);
+                MySqlEntityColumn entityColumn = new MySqlEntityColumn()
+                        .setFieldName(ColumnUtils.getColumnName(field, clas))
+                        .setOrder(ColumnUtils.getColumnOrder(field, clas))
+                        .setFieldType(mySqlTypeAndLength.getType().toLowerCase())
+                        .setFileTypeLength(mySqlTypeAndLength.getParamCount())
+                        .setFieldIsNull(ColumnUtils.isNull(field, clas))
+                        .setFieldIsKey(ColumnUtils.isKey(field, clas))
+                        .setFieldIsAutoIncrement(ColumnUtils.isAutoIncrement(field, clas))
+                        .setFieldDefaultValue(ColumnUtils.getDefaultValue(field, clas))
+                        .setFieldDefaultValueNative(ColumnUtils.getDefaultValueNative(field, clas))
+                        .setFieldComment(ColumnUtils.getComment(field, clas));
+                // 长度需要配置
+                if (mySqlTypeAndLength.getParamCount() == 1) {
+                    entityColumn.setParamCount(mySqlTypeAndLength.getLength());
                 }
-                else if (mySqlTypeAndLength.getLengthCount() == 2) {
-                    param.setFieldLength(mySqlTypeAndLength.getLength());
-                    param.setFieldDecimalLength(mySqlTypeAndLength.getDecimalLength());
-                }
-                param.setFieldIsNull(ColumnUtils.isNull(field, clas));
-                param.setFieldIsKey(ColumnUtils.isKey(field, clas));
-                param.setFieldIsAutoIncrement(ColumnUtils.isAutoIncrement(field, clas));
-                param.setFieldDefaultValue(ColumnUtils.getDefaultValue(field, clas));
-                param.setFieldDefaultValueNative(ColumnUtils.getDefaultValueNative(field, clas));
-                param.setFieldComment(ColumnUtils.getComment(field, clas));
-                // 获取当前字段的@Index注解
-                MySqlIndex mySqlIndex = field.getAnnotation(MySqlIndex.class);
-                if (null != mySqlIndex) {
-                    String[] indexValue = mySqlIndex.columns();
-                    param
-                        .setFiledIndexName(
-                                (mySqlIndex.value() == null || mySqlIndex.value().equals(""))
-                                        ? (idxPrefix + ((indexValue.length == 0)
-                                                ? ColumnUtils.getColumnName(field, clas) : stringArrFormat(indexValue)))
-                                        : idxPrefix + mySqlIndex.value());
-                    param.setFiledIndexValue(
-                            indexValue.length == 0 ? Collections.singletonList(ColumnUtils.getColumnName(field, clas))
-                                    : Arrays.asList(indexValue));
-                }
-                // 获取当前字段的@Unique注解
-                Unique unique = field.getAnnotation(Unique.class);
-                if (null != unique) {
-                    String[] uniqueValue = unique.columns();
-                    param.setFiledUniqueName((unique.value() == null || unique.value().equals(""))
-                            ? (uniPrefix + ((uniqueValue.length == 0) ? ColumnUtils.getColumnName(field, clas)
-                                    : stringArrFormat(uniqueValue)))
-                            : uniPrefix + unique.value());
-                    param.setFiledUniqueValue(
-                            uniqueValue.length == 0 ? Collections.singletonList(ColumnUtils.getColumnName(field, clas))
-                                    : Arrays.asList(uniqueValue));
+                // 小数也需要配置
+                else if (mySqlTypeAndLength.getParamCount() == 2) {
+                    entityColumn.setParamCount(mySqlTypeAndLength.getLength())
+                            .setFieldDecimalLength(mySqlTypeAndLength.getDecimalLength());
                 }
                 // 获取当前字段的@IgnoreUpdate注解
                 IgnoreUpdate ignoreUpdate = field.getAnnotation(IgnoreUpdate.class);
-                if (null != ignoreUpdate) {
-                    param.setIgnoreUpdate(ignoreUpdate.value());
+                if (Objects.nonNull(ignoreUpdate)) {
+                    entityColumn.setIgnoreUpdate(ignoreUpdate.value());
                 }
-                fieldList.add(param);
+                fieldList.add(entityColumn);
             }
         }
         // 进行排序
-        fieldList.sort(Comparator.comparingInt(ColumnParam::getOrder));
+        fieldList.sort(Comparator.comparingInt(MySqlEntityColumn::getOrder));
         return new ArrayList<>(fieldList);
-    }
-
-    /**
-     * String[] to format xxx_yyy_sss
-     */
-    private String stringArrFormat(String[] arr) {
-        return Arrays.toString(arr).replaceAll(",", "_").replaceAll(" ", "").replace("[", "").replace("]", "");
     }
 
     /**
@@ -660,42 +772,43 @@ public class MySqlTableHandlerService implements TableHandlerService {
     /**
      * Mysql 类型和长度
      */
-    public MySqlTypeAndLength getMySqlTypeAndLength(Field field, Class<?> clazz) {
-        DbColumn column = ColumnUtils.getColumn(field, clazz);
+    public MySqlTypeAndLength getTypeAndLength(Field field, Class<?> clazz) {
         if (!ColumnUtils.hasColumn(field, clazz)) {
             throw new RuntimeException("字段名：" + field.getName() + "没有字段标识的注解，异常抛出！");
         }
-        // 类型为空根据字段类型去默认匹配类型
-        MySqlFieldTypeEnum mysqlType = MySql4JavaType.get(field.getGenericType().toString());
-        if (mysqlType == null) {
+        // 根据字段注解获取类型和长度配置
+        MySqlFieldType mySqlFieldType = clazz.getAnnotation(MySqlFieldType.class);
+        MySqlTypeAndLength typeAndLength;
+        if (Objects.isNull(mySqlFieldType)){
+            typeAndLength = MySql4JavaType.getTypeAndLength(field.getGenericType().toString());
+        } else {
+            typeAndLength = mySqlFieldType.value().getTypeAndLength();
+        }
+
+        if (ObjectUtil.isAllNotEmpty(typeAndLength)) {
             throw new RuntimeException("字段名：" + field.getName() + "不支持" + field.getGenericType()
                     + "类型转换到mysql类型，仅支持JavaToMysqlType类中的类型默认转换，异常抛出！");
         }
-        String sqlType = mysqlType.toString().toLowerCase();
-        // 默认类型可以使用column来设置长度
-        if (column != null) {
-            return buildMySqlTypeAndLength(field, sqlType, column.length(), column.decimalLength());
+
+        // 处理字段注解是否有自定义的长度配置
+        DbColumn column = ColumnUtils.getColumnAnno(field, clazz);
+        if (Objects.isNull(column)) {
+            typeAndLengthHandler(typeAndLength,255, 0);
+        } else {
+            typeAndLengthHandler(typeAndLength, column.length(),column.decimalLength() );
         }
-        return buildMySqlTypeAndLength(field, sqlType, 255, 0);
+        return typeAndLength;
     }
 
     /**
      * 构建 Mysql 类型和长度
      */
-    private static MySqlTypeAndLength buildMySqlTypeAndLength(Field field, String type, int length, int decimalLength) {
-        MySqlTypeAndLength mySqlTypeAndLength = MySql4JavaType.getTypeAndLength(type);
-        if (mySqlTypeAndLength == null) {
-            throw new RuntimeException("字段名：" + field.getName() + "使用的" + type
-                    + "类型，没有配置对应的MySqlTypeConstant，只支持创建MySqlTypeConstant中类型的字段，异常抛出！");
-        }
-        MySqlTypeAndLength targetMySqlTypeAndLength = new MySqlTypeAndLength();
-        BeanUtils.copyProperties(mySqlTypeAndLength, targetMySqlTypeAndLength);
+    private static void typeAndLengthHandler(MySqlTypeAndLength typeAndLength, int length, int decimalLength) {
         if (length != 255) {
-            targetMySqlTypeAndLength.setLength(length);
+            typeAndLength.setLength(length);
         }
         if (decimalLength != 0) {
-            targetMySqlTypeAndLength.setDecimalLength(decimalLength);
+            typeAndLength.setDecimalLength(decimalLength);
         }
-        return targetMySqlTypeAndLength;
     }
 }

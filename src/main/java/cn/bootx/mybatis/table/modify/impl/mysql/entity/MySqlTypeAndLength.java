@@ -15,10 +15,13 @@ import lombok.Setter;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-public class MySqlTypeAndLength {
+public class MySqlTypeAndLength implements Cloneable{
 
-    /** 长度数 */
-    private Integer lengthCount;
+    /** 字段类型(java类型) */
+    private String type;
+
+    /** 字段参数长度 */
+    private int paramCount;
 
     /** 长度 */
     private Integer length;
@@ -26,7 +29,12 @@ public class MySqlTypeAndLength {
     /** 小数长度 */
     private Integer decimalLength;
 
-    /** 类型 */
-    private String type;
-
+    @Override
+    public MySqlTypeAndLength clone() {
+        try {
+            return (MySqlTypeAndLength) super.clone();
+        } catch (CloneNotSupportedException e) {
+            throw new AssertionError();
+        }
+    }
 }

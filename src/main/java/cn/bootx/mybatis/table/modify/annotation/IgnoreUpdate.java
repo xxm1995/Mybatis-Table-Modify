@@ -16,7 +16,7 @@ import java.lang.annotation.Target;
 @Documented
 public @interface IgnoreUpdate {
 
-    // 是否忽略对当前字段的更新操作
+    /** 是否忽略对当前字段的更新操作 */
     boolean value() default true;
 
 }

@@ -4,13 +4,13 @@ import lombok.Getter;
 import lombok.Setter;
 
 /**
- * Mysql statistics 索引信息表
+ * Mysql 索引信息表(statistics)
  * @author xxm
  * @date 2023/4/10
  */
 @Getter
 @Setter
-public class SysMySqlIndexInfo {
+public class MySqlTableIndexInfo {
 
     /** 是否不能重复 */
     private boolean nonUnique;

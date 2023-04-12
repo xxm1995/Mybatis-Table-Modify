@@ -1,9 +1,8 @@
-package cn.bootx.mybatis.table.modify.domain;
+package cn.bootx.mybatis.table.modify.impl.mysql.entity;
 
 import lombok.Getter;
 import lombok.Setter;
-
-import java.util.List;
+import lombok.experimental.Accessors;
 
 /**
  * 用于存放创建表的字段信息
@@ -13,7 +12,8 @@ import java.util.List;
  */
 @Getter
 @Setter
-public class ColumnParam implements Cloneable {
+@Accessors(chain = true)
+public class MySqlEntityColumn implements Cloneable {
 
     /**
      * 字段名
@@ -31,9 +31,12 @@ public class ColumnParam implements Cloneable {
     private String fieldType;
 
     /**
-     * 类型长度
+     * 字段类型参数个数:
+     * 0. 不需要长度参数, 比如date类型
+     * 1. 需要一个长度参数, 比如 int/datetime/varchar等
+     * 2. 需要小数位数的, 比如 decimal/float等
      */
-    private int fieldLength;
+    private int paramCount;
 
     /**
      * 类型小数长度
@@ -66,7 +69,10 @@ public class ColumnParam implements Cloneable {
     private boolean fieldDefaultValueNative;
 
     /**
-     * 该类型需要几个长度（例如，需要小数位数的，那么总长度和小数长度就是2个长度）一版只有0、1、2三个可选值，自动从配置的类型中获取的
+     * 字段类型长度:
+     * 0. 不需要长度参数, 比如date类型
+     * 1. 需要一个长度参数, 比如 int/datetime/varchar等
+     * 2. 需要小数位数的, 比如 decimal/float等
      */
     private int fileTypeLength;
 
@@ -81,10 +87,10 @@ public class ColumnParam implements Cloneable {
     private boolean ignoreUpdate;
 
     @Override
-    public ColumnParam clone() {
-        ColumnParam columnParam = null;
+    public MySqlEntityColumn clone() {
+        MySqlEntityColumn columnParam = null;
         try {
-            columnParam = (ColumnParam) super.clone();
+            columnParam = (MySqlEntityColumn) super.clone();
         }
         catch (CloneNotSupportedException e) {
             e.printStackTrace();

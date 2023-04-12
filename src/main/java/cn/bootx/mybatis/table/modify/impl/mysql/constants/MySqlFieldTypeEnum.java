@@ -1,7 +1,10 @@
 package cn.bootx.mybatis.table.modify.impl.mysql.constants;
 
+import cn.bootx.mybatis.table.modify.impl.mysql.entity.MySqlTypeAndLength;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
+
+import java.util.Objects;
 
 /**
  * 用于配置Mysql数据库中类型，并且该类型需要设置几个长度 这里配置多少个类型决定了，创建表能使用多少类型 例如：varchar(1) decimal(5,2)
@@ -14,8 +17,6 @@ import lombok.Getter;
 @AllArgsConstructor
 public enum MySqlFieldTypeEnum {
 
-    /** DEFAULT */
-    DEFAULT(null, null, null),
     /** INT */
     INT(1, 11, null),
     /** VARCHAR */
@@ -69,13 +70,31 @@ public enum MySqlFieldTypeEnum {
     /** JSON */
     JSON(0, null, null);
 
-    /** 长度数 */
-    private final Integer lengthCount;
+    /**
+     * 字段类型参数个数:
+     * 0. 不需要长度参数, 比如date类型
+     * 1. 需要一个长度参数, 比如 int/datetime/varchar等
+     * 2. 需要小数位数的, 比如 decimal/float等
+     */
+    private final int paramCount;
 
     /** 默认长度 */
     private final Integer lengthDefault;
 
     /** 默认小数长度 */
     private final Integer decimalLengthDefault;
+
+    /**
+     * 获取类型
+     * @return MySQL类型信息
+     */
+    public MySqlTypeAndLength getTypeAndLength(){
+        return new MySqlTypeAndLength(
+                this.toString().toLowerCase(),
+                this.getParamCount(),
+                this.getLengthDefault(),
+                this.getDecimalLengthDefault()
+        );
+    }
 
 }
