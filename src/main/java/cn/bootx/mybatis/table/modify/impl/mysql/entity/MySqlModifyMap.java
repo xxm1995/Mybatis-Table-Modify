@@ -17,14 +17,16 @@ public class MySqlModifyMap {
 
     /** 用于存需要创建的表名+（字段结构/表信息） */
     private final Map<String, TableConfig> createTables = new HashMap<>();
-    /** 用于存需要更新字段类型等的表名+结构 */
-    private final Map<String, TableConfig> updateColumns = new HashMap<>();
-    /** 用于存需要增加字段的表名+结构 */
-    private final Map<String, TableConfig> addColumns = new HashMap<>();
-    /** 用于存需要删除字段的表名+结构 */
-    private final Map<String, TableConfig> removeColumns = new HashMap<>();
+    /** 用于存需要添加主键的表名+结构 */
+    private final Map<String, List<String>> addKeys = new HashMap<>();
     /** 用于存需要删除主键的表名+结构 */
-    private final Map<String, TableConfig> dropKeys = new HashMap<>();
+    private final Map<String, List<String>> dropKeys = new HashMap<>();
+    /** 用于存需要增加的表名+字段列表 */
+    private final Map<String, List<MySqlEntityColumn>> addColumns = new HashMap<>();
+    /** 用于存需要修改的表名+字段列表 */
+    private final Map<String, List<MySqlEntityColumn>> updateColumns = new HashMap<>();
+    /** 用于存需要删除的表名+字段列表 */
+    private final Map<String, List<String>> removeColumns = new HashMap<>();
     /** 用于存需要增加的表名+索引列表 */
     private final Map<String, List<MySqlEntityIndexInfo>> addIndexes = new HashMap<>();
     /** 用于存需要更新的表名+索引列表 */

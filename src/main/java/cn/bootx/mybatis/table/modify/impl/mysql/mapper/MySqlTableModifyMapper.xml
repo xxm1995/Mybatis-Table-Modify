@@ -177,9 +177,11 @@
         where table_name = #{tableName} and table_schema = (select database())
     </select>
 
-    <!-- 根据表名查询表的结构 -->
+    <!-- 根据表名查询库中该表的字段结构等信息 -->
     <select id="findTableByTableName" resultMap="MysqlTableResultMap">
+        select * from information_schema.columns where table_name = #{tableName} and table_schema = (select database())
     </select>
+
     <!-- 根据表名查询库中该表的字段结构等信息 -->
     <select id="findColumnByTableName" resultMap="MysqlColumnsResultMap" parameterType="String">
         select * from information_schema.columns where table_name = #{tableName} and table_schema = (select database())

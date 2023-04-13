@@ -145,9 +145,9 @@ public class MySqlTableModifyService {
                     Map<String, Object> map = new HashMap<>();
                     map.put(entry.getKey(), obj);
                     MySqlEntityColumn fieldProperties = (MySqlEntityColumn) obj;
-                    log.info("开始修改表" + entry.getKey() + "中的字段" + fieldProperties.getFieldName());
+                    log.info("开始修改表" + entry.getKey() + "中的字段" + fieldProperties.getColumnName());
                     mysqlTableModifyMapper.modifyTableField(map);
-                    log.info("完成修改表" + entry.getKey() + "中的字段" + fieldProperties.getFieldName());
+                    log.info("完成修改表" + entry.getKey() + "中的字段" + fieldProperties.getColumnName());
                 }
             }
         }
@@ -207,9 +207,9 @@ public class MySqlTableModifyService {
                     Map<String, Object> map = new HashMap<>();
                     map.put(entry.getKey(), obj);
                     MySqlEntityColumn fieldProperties = (MySqlEntityColumn) obj;
-                    log.info("开始为表" + entry.getKey() + "增加字段" + fieldProperties.getFieldName());
+                    log.info("开始为表" + entry.getKey() + "增加字段" + fieldProperties.getColumnName());
                     mysqlTableModifyMapper.addTableField(map);
-                    log.info("完成为表" + entry.getKey() + "增加字段" + fieldProperties.getFieldName());
+                    log.info("完成为表" + entry.getKey() + "增加字段" + fieldProperties.getColumnName());
                 }
             }
         }
@@ -227,9 +227,9 @@ public class MySqlTableModifyService {
                     Map<String, Object> map = new HashMap<>();
                     map.put(entry.getKey(), obj);
                     MySqlEntityColumn fieldProperties = (MySqlEntityColumn) obj;
-                    log.info("开始为表" + entry.getKey() + "删除主键" + fieldProperties.getFieldName());
+                    log.info("开始为表" + entry.getKey() + "删除主键" + fieldProperties.getColumnName());
                     mysqlTableModifyMapper.dropKeyTableField(map);
-                    log.info("完成为表" + entry.getKey() + "删除主键" + fieldProperties.getFieldName());
+                    log.info("完成为表" + entry.getKey() + "删除主键" + fieldProperties.getColumnName());
                 }
             }
         }

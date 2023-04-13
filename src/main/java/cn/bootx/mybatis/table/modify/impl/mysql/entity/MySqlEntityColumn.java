@@ -15,14 +15,10 @@ import lombok.experimental.Accessors;
 @Accessors(chain = true)
 public class MySqlEntityColumn implements Cloneable {
 
-    /**
-     * 字段名
-     */
-    private String fieldName;
+    /** 字段名 */
+    private String columnName;
 
-    /**
-     * 排序
-     */
+    /** 排序 */
     private int order;
 
     /**
@@ -41,7 +37,7 @@ public class MySqlEntityColumn implements Cloneable {
     /**
      * 类型小数长度
      */
-    private int fieldDecimalLength;
+    private int decimalLength;
 
     /**
      * 字段是否非空
@@ -51,35 +47,27 @@ public class MySqlEntityColumn implements Cloneable {
     /**
      * 字段是否是主键
      */
-    private boolean fieldIsKey;
+    private boolean key;
 
     /**
      * 主键是否自增
      */
-    private boolean fieldIsAutoIncrement;
+    private boolean autoIncrement;
 
     /**
      * 字段默认值
      */
-    private String fieldDefaultValue;
+    private String defaultValue;
 
     /**
      * 字段默认值是否原生，原生使用$,非原生使用#
      */
-    private boolean fieldDefaultValueNative;
-
-    /**
-     * 字段类型长度:
-     * 0. 不需要长度参数, 比如date类型
-     * 1. 需要一个长度参数, 比如 int/datetime/varchar等
-     * 2. 需要小数位数的, 比如 decimal/float等
-     */
-    private int fileTypeLength;
+    private boolean defaultValueNative;
 
     /**
      * 字段的备注
      */
-    private String fieldComment;
+    private String comment;
 
     /**
      * 是否忽略更新
