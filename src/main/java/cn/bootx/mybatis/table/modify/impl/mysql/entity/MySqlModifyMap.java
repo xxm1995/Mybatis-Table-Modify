@@ -16,11 +16,9 @@ import java.util.Map;
 public class MySqlModifyMap {
 
     /** 用于存需要创建的表名+（字段结构/表信息） */
-    private final Map<String, TableConfig> createTables = new HashMap<>();
-    /** 用于存需要添加主键的表名+结构 */
-    private final Map<String, List<String>> addKeys = new HashMap<>();
-    /** 用于存需要删除主键的表名+结构 */
-    private final Map<String, List<String>> dropKeys = new HashMap<>();
+    private final Map<String, MySqlEntityTableInfo> createTables = new HashMap<>();
+    /** 用于存需要创建的表名+（字段结构/表信息） */
+    private final Map<String, MySqlUpdateTableInfo> updateTables = new HashMap<>();
     /** 用于存需要增加的表名+字段列表 */
     private final Map<String, List<MySqlEntityColumn>> addColumns = new HashMap<>();
     /** 用于存需要修改的表名+字段列表 */
@@ -33,6 +31,4 @@ public class MySqlModifyMap {
     private final Map<String, List<MySqlEntityIndexInfo>> updateIndexes = new HashMap<>();
     /** 用于存需要删除的表名+索引列表 */
     private final Map<String, List<String>> dropIndexes = new HashMap<>();
-    /** 更新表注释 */
-    private final Map<String, String> modifyComments = new HashMap<>();
 }

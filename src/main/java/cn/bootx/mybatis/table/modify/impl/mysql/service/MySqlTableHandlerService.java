@@ -4,13 +4,8 @@ import cn.bootx.mybatis.table.modify.annotation.*;
 import cn.bootx.mybatis.table.modify.configuration.MybatisTableModifyProperties;
 import cn.bootx.mybatis.table.modify.constants.TableCharset;
 import cn.bootx.mybatis.table.modify.handler.TableHandlerService;
-import cn.bootx.mybatis.table.modify.impl.mysql.annotation.MySqlFieldType;
-import cn.bootx.mybatis.table.modify.impl.mysql.annotation.MySqlIndex;
 import cn.bootx.mybatis.table.modify.impl.mysql.annotation.MySqlEngine;
-import cn.bootx.mybatis.table.modify.impl.mysql.annotation.MySqlIndexes;
 import cn.bootx.mybatis.table.modify.impl.mysql.constants.MySqlEngineEnum;
-import cn.bootx.mybatis.table.modify.impl.mysql.constants.MySql4JavaType;
-import cn.bootx.mybatis.table.modify.impl.mysql.constants.MySqlFieldTypeEnum;
 import cn.bootx.mybatis.table.modify.impl.mysql.entity.*;
 import cn.bootx.mybatis.table.modify.impl.mysql.mapper.MySqlTableModifyMapper;
 import cn.bootx.mybatis.table.modify.utils.ClassScanner;
@@ -20,20 +15,14 @@ import cn.bootx.mybatis.table.modify.constants.UpdateType;
 import cn.bootx.mybatis.table.modify.impl.mysql.entity.MySqlModifyMap;
 import cn.bootx.mybatis.table.modify.impl.mysql.entity.MySqlEntityColumn;
 import cn.bootx.mybatis.table.modify.domain.TableConfig;
-import cn.hutool.core.collection.CollUtil;
-import cn.hutool.core.collection.ListUtil;
-import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.core.util.StrUtil;
 import com.baomidou.mybatisplus.annotation.TableName;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import lombok.val;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.lang.reflect.Field;
 import java.util.*;
-import java.util.stream.Collectors;
 
 /**
  * @author sunchenbin
@@ -47,13 +36,15 @@ public class MySqlTableHandlerService implements TableHandlerService {
 
     private final MySqlTableModifyMapper mysqlTableModifyMapper;
 
-    private final MySqlIndexHandlerService mySqlIndexHandlerService;
+    private final MySqlIndexHandler mySqlIndexHandlerService;
 
-    private final MySqlColumnHandlerService mySqlColumnHandlerService;
+    private final MySqlColumnHandler mySqlColumnHandler;
 
     private final MySqlTableModifyService mySqlTableModifyService;
 
     private final MybatisTableModifyProperties mybatisTableModifyProperties;
+
+    private final MySqlTableInfoHandler mySqlTableInfoHandler;
 
     /**
      * 处理器类型
@@ -123,16 +114,16 @@ public class MySqlTableHandlerService implements TableHandlerService {
         // 先查该表是否以存在
         if (Objects.isNull(mysqlTableModifyMapper.existsByTableName(tableName))){
             // 获取表信息
-            getCreateTable(clas,baseTableMap);
+            mySqlTableInfoHandler.getCreateTable(clas,baseTableMap);
             // 获取建表字段
-            mySqlColumnHandlerService.getCreateColumn(clas,baseTableMap);
+            mySqlColumnHandler.getCreateColumn(clas,baseTableMap);
             // 获取索引
             mySqlIndexHandlerService.getCreateIndex(clas,baseTableMap);
         } else {
             // 获取表信息
-            getModifyTable(clas,baseTableMap);
+            mySqlTableInfoHandler.getModifyTable(clas,baseTableMap);
             // 获取建表字段
-            mySqlColumnHandlerService.getModifyColumn(clas,baseTableMap);
+            mySqlColumnHandler.getModifyColumn(clas,baseTableMap);
             // 获取索引
             mySqlIndexHandlerService.getModifyIndex(clas,baseTableMap);
         }
@@ -158,29 +149,6 @@ public class MySqlTableHandlerService implements TableHandlerService {
             throw new RuntimeException(tableName + "表名出现重复，禁止创建！");
         }
         tableNames.add(tableName);
-    }
-
-    /**
-     * 创建表
-     */
-    public void getCreateTable(Class<?> clas,MySqlModifyMap baseTableMap){
-        String tableName = ColumnUtils.getTableName(clas);
-
-        // 获取表注释
-        String tableComment = ColumnUtils.getTableComment(clas);
-
-        // 获取表字符集
-        TableCharset tableCharset = ColumnUtils.getTableCharset(clas);
-
-        // 获取表引擎
-        MySqlEngineEnum tableEngine = getTableEngine(clas);
-    }
-
-    /**
-     * 更新表信息
-     */
-    public void getModifyTable(Class<?> clas,MySqlModifyMap baseTableMap){
-
     }
 
     /**
@@ -237,53 +205,4 @@ public class MySqlTableHandlerService implements TableHandlerService {
     }
 
 
-    /**
-     * 返回需要删除主键的字段
-     * @param tableColumnList 表结构
-     * @param allFieldList model中的所有字段
-     * @return 需要删除主键的字段
-     */
-    private List<Object> getDropKeyFieldList(List<MysqlTableColumnInfo> tableColumnList, List<Object> allFieldList) {
-        Map<String, MySqlEntityColumn> fieldMap = getAllFieldMap(allFieldList);
-        List<Object> dropKeyFieldList = new ArrayList<>();
-        for (MysqlTableColumnInfo sysColumn : tableColumnList) {
-            // 数据库中有该字段时
-            MySqlEntityColumn columnParam = fieldMap.get(sysColumn.getColumnName().toLowerCase());
-            if (columnParam != null) {
-                // 原本是主键，现在不是了，那么要去做删除主键的操作
-                if ("PRI".equals(sysColumn.getColumnKey()) && !columnParam.isKey()) {
-                    dropKeyFieldList.add(columnParam);
-                }
-
-            }
-        }
-        return dropKeyFieldList;
-    }
-
-    /**
-     * 将allFieldList转换为Map结构
-     */
-    private Map<String, MySqlEntityColumn> getAllFieldMap(List<Object> allFieldList) {
-        // 将fieldList转成Map类型，字段名作为主键
-        Map<String, MySqlEntityColumn> fieldMap = new HashMap<>();
-        for (Object obj : allFieldList) {
-            MySqlEntityColumn columnParam = (MySqlEntityColumn) obj;
-            fieldMap.put(columnParam.getColumnName().toLowerCase(), columnParam);
-        }
-        return fieldMap;
-    }
-
-    /**
-     * 获取表引擎类型
-     */
-    public MySqlEngineEnum getTableEngine(Class<?> clazz) {
-        MySqlEngine mySqlEngine = clazz.getAnnotation(MySqlEngine.class);
-        if (!ColumnUtils.hasTableAnnotation(clazz)) {
-            return null;
-        }
-        if (mySqlEngine != null && mySqlEngine.value() != MySqlEngineEnum.DEFAULT) {
-            return mySqlEngine.value();
-        }
-        return null;
-    }
 }

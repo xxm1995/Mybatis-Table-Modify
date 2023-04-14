@@ -12,6 +12,7 @@ import cn.hutool.core.collection.ListUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import lombok.val;
+import org.springframework.stereotype.Component;
 import org.springframework.stereotype.Service;
 
 import java.util.*;
@@ -23,9 +24,9 @@ import java.util.stream.Collectors;
  * @date 2023/4/13
  */
 @Slf4j
-@Service
+@Component
 @RequiredArgsConstructor
-public class MySqlIndexHandlerService {
+public class MySqlIndexHandler {
     private final MySqlTableModifyMapper mysqlTableModifyMapper;
 
     /**

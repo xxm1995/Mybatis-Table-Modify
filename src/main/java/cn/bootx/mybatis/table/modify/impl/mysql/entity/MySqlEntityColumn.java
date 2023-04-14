@@ -21,9 +21,7 @@ public class MySqlEntityColumn implements Cloneable {
     /** 排序 */
     private int order;
 
-    /**
-     * 字段类型
-     */
+    /** 字段类型 */
     private String fieldType;
 
     /**
@@ -34,44 +32,28 @@ public class MySqlEntityColumn implements Cloneable {
      */
     private int paramCount;
 
-    /**
-     * 类型小数长度
-     */
+    /** 小数类型的浮点长度 */
     private int decimalLength;
 
-    /**
-     * 字段是否非空
-     */
+    /** 字段是否非空 */
     private boolean fieldIsNull;
 
-    /**
-     * 字段是否是主键
-     */
+    /** 字段是否是主键 */
     private boolean key;
 
-    /**
-     * 主键是否自增
-     */
+    /** 主键是否自增 */
     private boolean autoIncrement;
 
-    /**
-     * 字段默认值
-     */
+    /** 字段默认值 */
     private String defaultValue;
 
-    /**
-     * 字段默认值是否原生，原生使用$,非原生使用#
-     */
+    /** 字段默认值是否原生，原生使用$,非原生使用# */
     private boolean defaultValueNative;
 
-    /**
-     * 字段的备注
-     */
+    /** 字段的备注 */
     private String comment;
 
-    /**
-     * 是否忽略更新
-     */
+    /** 是否忽略更新 */
     private boolean ignoreUpdate;
 
     @Override
