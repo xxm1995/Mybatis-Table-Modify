@@ -17,7 +17,7 @@ import lombok.Setter;
 @AllArgsConstructor
 public class MySqlTypeAndLength implements Cloneable{
 
-    /** 字段类型(java类型) */
+    /** 字段类型(MySQL类型) */
     private String type;
 
     /** 字段参数长度 */

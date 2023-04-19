@@ -2,20 +2,13 @@ package cn.bootx.mybatis.table.modify.impl.mysql.service;
 
 import cn.bootx.mybatis.table.modify.annotation.*;
 import cn.bootx.mybatis.table.modify.configuration.MybatisTableModifyProperties;
-import cn.bootx.mybatis.table.modify.constants.TableCharset;
 import cn.bootx.mybatis.table.modify.handler.TableHandlerService;
-import cn.bootx.mybatis.table.modify.impl.mysql.annotation.MySqlEngine;
-import cn.bootx.mybatis.table.modify.impl.mysql.constants.MySqlEngineEnum;
-import cn.bootx.mybatis.table.modify.impl.mysql.entity.*;
 import cn.bootx.mybatis.table.modify.impl.mysql.mapper.MySqlTableModifyMapper;
 import cn.bootx.mybatis.table.modify.utils.ClassScanner;
 import cn.bootx.mybatis.table.modify.utils.ColumnUtils;
 import cn.bootx.mybatis.table.modify.constants.DatabaseType;
 import cn.bootx.mybatis.table.modify.constants.UpdateType;
 import cn.bootx.mybatis.table.modify.impl.mysql.entity.MySqlModifyMap;
-import cn.bootx.mybatis.table.modify.impl.mysql.entity.MySqlEntityColumn;
-import cn.bootx.mybatis.table.modify.domain.TableConfig;
-import cn.hutool.core.util.StrUtil;
 import com.baomidou.mybatisplus.annotation.TableName;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -36,15 +29,17 @@ public class MySqlTableHandlerService implements TableHandlerService {
 
     private final MySqlTableModifyMapper mysqlTableModifyMapper;
 
-    private final MySqlIndexHandler mySqlIndexHandlerService;
+    private final MySqlIndexInfoService mySqlIndexInfoServiceService;
 
-    private final MySqlColumnHandler mySqlColumnHandler;
+    private final MySqlColumnInfoService mySqlColumnInfoService;
 
-    private final MySqlTableModifyService mySqlTableModifyService;
+    private final MySqlCreateTableService mySqlCreateTableService;
+
+    private final MySqlModifyTableService mySqlModifyTableService;
 
     private final MybatisTableModifyProperties mybatisTableModifyProperties;
 
-    private final MySqlTableInfoHandler mySqlTableInfoHandler;
+    private final MySqlTableInfoService mySqlTableInfoService;
 
     /**
      * 处理器类型
@@ -64,7 +59,7 @@ public class MySqlTableHandlerService implements TableHandlerService {
         // 自动创建模式：update表示更新，create表示删除原表重新创建
         UpdateType updateType = mybatisTableModifyProperties.getUpdateType();
 
-        // 要扫描的model所在的pack
+        // 要扫描的entity所在的pack
         String pack = mybatisTableModifyProperties.getScanPackage();
 
         // 拆成多个pack，支持多个
@@ -79,7 +74,7 @@ public class MySqlTableHandlerService implements TableHandlerService {
         // 表名集合
         List<String> tableNames = new ArrayList<>();
 
-        // 循环全部的model
+        // 循环全部的entity
         for (Class<?> clas : classes) {
             // 没有打注解不需要创建表 或者配置了忽略建表的注解
             if (!ColumnUtils.hasTableAnnotation(clas)) {
@@ -92,17 +87,17 @@ public class MySqlTableHandlerService implements TableHandlerService {
         }
 
         // 根据传入的信息，分别去创建或修改表结构
-        this.createOrModifyTableConstruct(baseTableMap, updateType);
+        this.createOrModifyTableConstruct(baseTableMap);
     }
 
     /**
      * 构建出全部表的增删改的map
-     * @param clas package中的model的Class
+     * @param clas package中的entity的Class
      * @param baseTableMap 用于存储各种操作表结构的容器
      */
     private void buildTableMapConstruct(Class<?> clas, MySqlModifyMap baseTableMap,
                                         UpdateType updateType) {
-        // 获取model的tableName
+        // 获取entity的tableName
         String tableName = ColumnUtils.getTableName(clas);
 
         // 如果配置文件配置的是DROP_CREATE，表示将所有的表删掉重新创建
@@ -112,20 +107,20 @@ public class MySqlTableHandlerService implements TableHandlerService {
         }
 
         // 先查该表是否以存在
-        if (Objects.isNull(mysqlTableModifyMapper.existsByTableName(tableName))){
-            // 获取表信息
-            mySqlTableInfoHandler.getCreateTable(clas,baseTableMap);
-            // 获取建表字段
-            mySqlColumnHandler.getCreateColumn(clas,baseTableMap);
-            // 获取索引
-            mySqlIndexHandlerService.getCreateIndex(clas,baseTableMap);
+        if (mysqlTableModifyMapper.existsByTableName(tableName)){
+            // 获取表更新信息
+            mySqlTableInfoService.getModifyTable(clas,baseTableMap);
+            // 获取表更新字段
+            mySqlColumnInfoService.getModifyColumn(clas,baseTableMap);
+            // 获取更新索引
+            mySqlIndexInfoServiceService.getModifyIndex(clas,baseTableMap);
         } else {
-            // 获取表信息
-            mySqlTableInfoHandler.getModifyTable(clas,baseTableMap);
+            // 获取建表信息
+            mySqlTableInfoService.getCreateTable(clas,baseTableMap);
             // 获取建表字段
-            mySqlColumnHandler.getModifyColumn(clas,baseTableMap);
-            // 获取索引
-            mySqlIndexHandlerService.getModifyIndex(clas,baseTableMap);
+            mySqlColumnInfoService.getCreateColumn(clas,baseTableMap);
+            // 获取建表索引
+            mySqlIndexInfoServiceService.getCreateIndex(clas,baseTableMap);
         }
 
     }
@@ -133,11 +128,11 @@ public class MySqlTableHandlerService implements TableHandlerService {
     /**
      * 根据传入的信息，分别去创建或修改表结构
      */
-    private void createOrModifyTableConstruct(MySqlModifyMap baseTableMap, UpdateType updateType){
+    private void createOrModifyTableConstruct(MySqlModifyMap baseTableMap){
         // 1. 创建表
-        mySqlTableModifyService.createTable(baseTableMap.getCreateTables());
+        mySqlCreateTableService.createTable(baseTableMap);
         // 2. 修改表结构
-        mySqlTableModifyService.modifyTableConstruct(baseTableMap,updateType);
+        mySqlModifyTableService.modifyTableConstruct(baseTableMap);
     }
 
     /**
@@ -150,59 +145,5 @@ public class MySqlTableHandlerService implements TableHandlerService {
         }
         tableNames.add(tableName);
     }
-
-    /**
-     * 数据表是需要创建还是更新
-     */
-    private boolean getCreateOrModify(String tableName, Class<?> clas, List<Object> allFieldList, MySqlModifyMap baseTableMap){
-
-        // 获取表注释
-        String tableComment = ColumnUtils.getTableComment(clas);
-
-        // 获取表字符集
-        TableCharset tableCharset = ColumnUtils.getTableCharset(clas);
-
-        // 获取表引擎
-        MySqlEngineEnum tableEngine = getTableEngine(clas);
-
-        // 表不存在时, 添加到新建表容器中
-        Map<String, Object> map = new HashMap<>();
-        if (Objects.isNull(tableInfo)) {
-            if (StrUtil.isNotBlank(tableComment)) {
-                map.put(MySqlTableInfo.TABLE_COMMENT_KEY, tableComment);
-            }
-            if (tableCharset != null && tableCharset != TableCharset.DEFAULT) {
-                map.put(MySqlTableInfo.TABLE_COLLATION_KEY, tableCharset.getValue().toLowerCase());
-            }
-            if (tableEngine != null && tableEngine != MySqlEngineEnum.DEFAULT) {
-                map.put(MySqlTableInfo.TABLE_ENGINE_KEY, tableEngine.toString());
-            }
-            baseTableMap.getCreateTables().put(tableName, new TableConfig(allFieldList, map));
-            baseTableMap.getAddIndexTable().put(tableName, new TableConfig(getAddIndexes(null, allFieldList)));
-            baseTableMap.getAddUniqueTable().put(tableName, new TableConfig(getAddUniqueList(null, allFieldList)));
-            return true;
-        }
-        else {
-            // 判断表注释是否要更新
-            if (StrUtil.isNotBlank(tableComment) && !Objects.equals(tableComment, tableInfo.getTableComment())) {
-                map.put(MySqlTableInfo.TABLE_COMMENT_KEY, tableComment);
-            }
-            // 判断表字符集是否要更新
-            if (tableCharset != null && tableCharset != TableCharset.DEFAULT
-                    && !tableCharset.getValue()
-                    .toLowerCase()
-                    .equals(tableInfo.getTableCollation().replace(MySqlTableInfo.TABLE_COLLATION_SUFFIX, ""))) {
-                map.put(MySqlTableInfo.TABLE_COLLATION_KEY, tableCharset.getValue().toLowerCase());
-            }
-            // 判断表引擎是否要更新
-            if (tableEngine != null && tableEngine != MySqlEngineEnum.DEFAULT
-                    && !tableEngine.toString().equals(tableInfo.getEngine())) {
-                map.put(MySqlTableInfo.TABLE_ENGINE_KEY, tableEngine.toString());
-            }
-            baseTableMap.getModifyComments().put(tableName, new TableConfig(map));
-        }
-        return false;
-    }
-
 
 }

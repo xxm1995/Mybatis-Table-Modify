@@ -12,86 +12,86 @@ import lombok.Getter;
 @Getter
 public enum TableCharset {
 
-    /** DEFAULT */
+    /** default */
     DEFAULT(null),
-    /** MYSQL_ARMSCII8 */
-    MYSQL_ARMSCII8("ARMSCII8"),
-    /** MYSQL_ASCII */
-    MYSQL_ASCII("ASCII"),
-    /** MYSQL_BIG5 */
-    MYSQL_BIG5("BIG5"),
-    /** MYSQL_BINARY */
-    MYSQL_BINARY("BINARY"),
-    /** MYSQL_CP850 */
-    MYSQL_CP850("CP850"),
-    /** MYSQL_CP852 */
-    MYSQL_CP852("CP852"),
-    /** MYSQL_CP866 */
-    MYSQL_CP866("CP866"),
-    /** MYSQL_CP932 */
-    MYSQL_CP932("CP932"),
-    /** MYSQL_CP1250 */
-    MYSQL_CP1250("CP1250"),
-    /** MYSQL_CP1251 */
-    MYSQL_CP1251("CP1251"),
-    /** MYSQL_CP1256 */
-    MYSQL_CP1256("CP1256"),
-    /** MYSQL_CP1257 */
-    MYSQL_CP1257("CP1257"),
-    /** MYSQL_DEC8 */
-    MYSQL_DEC8("DEC8"),
-    /** MYSQL_EUCJPMS */
-    MYSQL_EUCJPMS("EUCJPMS"),
-    /** MYSQL_EUCKR */
-    MYSQL_EUCKR("EUCKR"),
-    /** MYSQL_GB2312 */
-    MYSQL_GB2312("GB2312"),
-    /** MYSQL_GBK */
-    MYSQL_GBK("GBK"),
-    /** MYSQL_GEOSTD8 */
-    MYSQL_GEOSTD8("GEOSTD8"),
-    /** MYSQL_GREEK */
-    MYSQL_GREEK("GREEK"),
-    /** MYSQL_HEBREW */
-    MYSQL_HEBREW("HEBREW"),
-    /** MYSQL_HP8 */
-    MYSQL_HP8("HP8"),
-    /** MYSQL_KEYBCS2 */
-    MYSQL_KEYBCS2("KEYBCS2"),
-    /** MYSQL_KOI8R */
-    MYSQL_KOI8R("KOI8R"),
-    /** MYSQL_KOI8U */
-    MYSQL_KOI8U("KOI8U"),
-    /** MYSQL_LATIN1 */
-    MYSQL_LATIN1("LATIN1"),
-    /** MYSQL_LATIN2 */
-    MYSQL_LATIN2("LATIN2"),
-    /** MYSQL_LATIN5 */
-    MYSQL_LATIN5("LATIN5"),
-    /** MYSQL_LATIN7 */
-    MYSQL_LATIN7("LATIN7"),
-    /** MYSQL_MACCE */
-    MYSQL_MACCE("MACCE"),
-    /** MYSQL_MACROMAN */
-    MYSQL_MACROMAN("MACROMAN"),
-    /** MYSQL_SJIS */
-    MYSQL_SJIS("SJIS"),
-    /** MYSQL_SWE7 */
-    MYSQL_SWE7("SWE7"),
-    /** MYSQL_TIS620 */
-    MYSQL_TIS620("TIS620"),
-    /** MYSQL_UCS2 */
-    MYSQL_UCS2("UCS2"),
-    /** MYSQL_UJIS */
-    MYSQL_UJIS("UJIS"),
-    /** MYSQL_UTF8 */
-    MYSQL_UTF8("UTF8"),
-    /** MYSQL_UTF8MB4 */
-    MYSQL_UTF8MB4("UTF8MB4"),
-    /** MYSQL_UTF16 */
-    MYSQL_UTF16("UTF16"),
-    /** MYSQL_UTF32 */
-    MYSQL_UTF32("UTF32");
+    /** mysql_armscii8 */
+    MYSQL_ARMSCII8("armscii8"),
+    /** mysql_ascii */
+    MYSQL_ASCII("ascii"),
+    /** mysql_big5 */
+    MYSQL_BIG5("big5"),
+    /** mysql_binary */
+    MYSQL_BINARY("binary"),
+    /** mysql_cp850 */
+    MYSQL_CP850("cp850"),
+    /** mysql_cp852 */
+    MYSQL_CP852("cp852"),
+    /** mysql_cp866 */
+    MYSQL_CP866("cp866"),
+    /** mysql_cp932 */
+    MYSQL_CP932("cp932"),
+    /** mysql_cp1250 */
+    MYSQL_CP1250("cp1250"),
+    /** mysql_cp1251 */
+    MYSQL_CP1251("cp1251"),
+    /** mysql_cp1256 */
+    MYSQL_CP1256("cp1256"),
+    /** mysql_cp1257 */
+    MYSQL_CP1257("cp1257"),
+    /** mysql_dec8 */
+    MYSQL_DEC8("dec8"),
+    /** mysql_eucjpms */
+    MYSQL_EUCJPMS("eucjpms"),
+    /** mysql_euckr */
+    MYSQL_EUCKR("euckr"),
+    /** mysql_gb2312 */
+    MYSQL_GB2312("gb2312"),
+    /** mysql_gbk */
+    MYSQL_GBK("gbk"),
+    /** mysql_geostd8 */
+    MYSQL_GEOSTD8("geostd8"),
+    /** mysql_greek */
+    MYSQL_GREEK("greek"),
+    /** mysql_hebrew */
+    MYSQL_HEBREW("hebrew"),
+    /** mysql_hp8 */
+    MYSQL_HP8("hp8"),
+    /** mysql_keybcs2 */
+    MYSQL_KEYBCS2("keybcs2"),
+    /** mysql_koi8r */
+    MYSQL_KOI8R("koi8r"),
+    /** mysql_koi8u */
+    MYSQL_KOI8U("koi8u"),
+    /** mysql_latin1 */
+    MYSQL_LATIN1("latin1"),
+    /** mysql_latin2 */
+    MYSQL_LATIN2("latin2"),
+    /** mysql_latin5 */
+    MYSQL_LATIN5("latin5"),
+    /** mysql_latin7 */
+    MYSQL_LATIN7("latin7"),
+    /** mysql_macce */
+    MYSQL_MACCE("macce"),
+    /** mysql_macroman */
+    MYSQL_MACROMAN("macroman"),
+    /** mysql_sjis */
+    MYSQL_SJIS("sjis"),
+    /** mysql_swe7 */
+    MYSQL_SWE7("swe7"),
+    /** mysql_tis620 */
+    MYSQL_TIS620("tis620"),
+    /** mysql_ucs2 */
+    MYSQL_UCS2("ucs2"),
+    /** mysql_ujis */
+    MYSQL_UJIS("ujis"),
+    /** mysql_utf8 */
+    MYSQL_UTF8("utf8"),
+    /** mysql_utf8mb4 */
+    MYSQL_UTF8MB4("utf8mb4"),
+    /** mysql_utf16 */
+    MYSQL_UTF16("utf16"),
+    /** mysql_utf32 */
+    MYSQL_UTF32("utf32");
 
     private final String value;
 }

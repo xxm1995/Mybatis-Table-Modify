@@ -4,7 +4,7 @@
 
     <!-- 强制指定查询表结构映射字段，避免被mybatis下划线转驼峰配置影响，导致查询不到值  -->
     <!-- =行信息 -->
-    <resultMap id="MysqlColumnsResultMap" type="cn.bootx.mybatis.table.modify.impl.mysql.entity.MysqlTableColumnInfo">
+    <resultMap id="MysqlColumnsResultMap" type="cn.bootx.mybatis.table.modify.impl.mysql.entity.MysqlTableColumn">
         <result property="tableSchema" column="table_schema"/>
         <result property="tableName" column="table_name"/>
         <result property="columnName" column="column_name"/>
@@ -50,7 +50,7 @@
     </resultMap>
 
     <!-- 索引信息 -->
-    <resultMap id="MysqlIndexResultMap" type="cn.bootx.mybatis.table.modify.impl.mysql.entity.MySqlTableIndexInfo">
+    <resultMap id="MysqlIndexResultMap" type="cn.bootx.mybatis.table.modify.impl.mysql.entity.MySqlTableIndex">
         <result property="indexName" column="index_name"/>
         <result property="indexType" column="index_type"/>
         <result property="indexComment" column="index_comment"/>
@@ -143,33 +143,84 @@
         </if>
     </sql>
 
-    <!-- 创建表的 -->
-    <select id="createTable" parameterType="java.util.Map">
-
-        <foreach collection="tableMap" mySqlIndex="key" item="value">
-            create table `${key}`(
-            <foreach collection="value.list" item="fields" separator=",">
-                <include refid="commonSql"></include>
-                <if test="fields.fieldIsKey">
-                    ,PRIMARY KEY (`${fields.fieldName}`)
-                </if>
+    <!-- 创建表 -->
+    <update id="createTable"  parameterType="cn.bootx.mybatis.table.modify.impl.mysql.entity.MySqlCreateParam">
+        <!-- 表名-->
+        create table `${table.name}`
+        <trim prefix="set" suffixOverrides=",">
+            <!-- 行 -->
+            <foreach collection="table.columns" item="column" separator=",">
+                `${column}`
             </foreach>
-            )
-            <foreach collection="value.map" mySqlIndex="ckey" item="cvalue">
-                <if test="ckey == 'table_comment'">
-                    COMMENT = #{cvalue}
-                </if>
-                <if test="ckey == 'table_collation'">
-                    CHARSET = #{cvalue}
-                </if>
-                <if test="ckey == 'engine'">
-                    ENGINE = #{cvalue}
-                </if>
+            <!-- 主键索引 -->
+            <if test="table.engine != null and table.engine != null">
+                PRIMARY KEY ${keys} USING BTREE,
+            </if>
+            <!-- 索引 -->
+            <foreach collection="table.indexes" item="index" separator=",">
+                `${index}`
             </foreach>
-            ;
-        </foreach>
+            <!-- 表信息 引擎-->
+            <if test="table.engine != null and table.engine != ''">
+                ENGINE = #{table.engine},
+            </if>
+            <!-- 表信息 字符集-->
+            <if test="table.charset != null and table.charset != ''">
+                CHARSET = #{table.charset},
+            </if>
+            <!-- 表信息 备注-->
+            <if test="table.comment != null and table.comment != ''">
+                COMMENT = #{table.comment},
+            </if>
+        </trim>
+        ;
+    </update>
 
-    </select>
+    <!-- 更新表 -->
+    <update id="modifyTable"  parameterType="cn.bootx.mybatis.table.modify.impl.mysql.entity.MySqlModifyParam">
+        <!-- 表名-->
+        alter table `${table.name}`
+        <trim prefix="set" suffixOverrides=",">
+            <!-- 删除行 -->
+            <foreach collection="table.dropColumns" item="column" separator=",">
+                DROP COLUMN `${column}`
+            </foreach>
+            <!-- 修改行 -->
+            <foreach collection="table.modifyColumns" item="column" separator=",">
+                MODIFY COLUMN `${column}`
+            </foreach>
+            <!-- 新增行 -->
+            <foreach collection="table.addColumns" item="column" separator=",">
+                ADD COLUMN `${column}`
+            </foreach>
+            <!-- 主键索引 -->
+            <if test="table.keys != null and table.keys != ''">
+                DROP PRIMARY KEY,
+                ADD PRIMARY KEY ${table.keys} USING BTREE,
+            </if>
+            <!-- 删除索引 -->
+            <foreach collection="table.dropIndexes" item="index" separator=",">
+                `${index}`
+            </foreach>
+            <!-- 新增索引 -->
+            <foreach collection="table.addIndexes" item="index" separator=",">
+                `${index}`
+            </foreach>
+            <!-- 表信息 引擎-->
+            <if test="table.engine != null and table.engine != ''">
+                ENGINE = #{table.engine},
+            </if>
+            <!-- 表信息 字符集-->
+            <if test="table.charset != null and table.charset != ''">
+                CHARSET = #{table.charset},
+            </if>
+            <!-- 表信息 备注-->
+            <if test="table.commentUpdate == null">
+                COMMENT = '#{table.comment}',
+            </if>
+        </trim >
+        ;
+    </update>
 
     <!-- 验证表是否存在 -->
     <select id="existsByTableName" resultType="boolean" parameterType="String">
@@ -177,9 +228,10 @@
         where table_name = #{tableName} and table_schema = (select database())
     </select>
 
-    <!-- 根据表名查询库中该表的字段结构等信息 -->
+    <!-- 根据表名查询库中该表的结构等信息 -->
     <select id="findTableByTableName" resultMap="MysqlTableResultMap">
-        select * from information_schema.columns where table_name = #{tableName} and table_schema = (select database())
+        select * from information_schema.tables
+        where table_name = #{tableName} and table_schema = (select database())
     </select>
 
     <!-- 根据表名查询库中该表的字段结构等信息 -->
@@ -256,11 +308,18 @@
         DROP TABLE IF EXISTS `${tableName}`;
     </select>
 
-    <!-- 查询当前表存在的索引, 除了主键索引primary -->
+    <!-- 查询当前表存在的索引, 排除主键索引primary -->
     <select id="findIndexByTableName" resultMap="MysqlIndexResultMap" parameterType="string">
         select index_name,index_type,index_comment,column_name,non_unique,seq_in_index from information_schema.statistics
         where table_schema = (select database()) and lower(index_name) !='primary'
         and table_name = #{tableName}
+    </select>
+
+    <!-- 查询当前表存在的主键索引primary -->
+    <select id="findPrimaryIndexByTableName" resultMap="MysqlIndexResultMap" parameterType="string">
+        select index_name,index_type,index_comment,column_name,non_unique,seq_in_index from information_schema.statistics
+        where table_schema = (select database()) and lower(index_name) ='primary'
+          and table_name = #{tableName}
     </select>
 
     <!-- 删除索引 -->

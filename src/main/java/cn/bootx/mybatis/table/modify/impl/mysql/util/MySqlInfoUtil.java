@@ -1,7 +1,6 @@
 package cn.bootx.mybatis.table.modify.impl.mysql.util;
 
 import cn.bootx.mybatis.table.modify.annotation.DbColumn;
-import cn.bootx.mybatis.table.modify.annotation.IgnoreUpdate;
 import cn.bootx.mybatis.table.modify.impl.mysql.annotation.MySqlFieldType;
 import cn.bootx.mybatis.table.modify.impl.mysql.constants.MySql4JavaType;
 import cn.bootx.mybatis.table.modify.impl.mysql.entity.MySqlEntityColumn;
@@ -22,7 +21,7 @@ import java.util.stream.Collectors;
 @UtilityClass
 public class MySqlInfoUtil {
     /**
-     * 迭代出所有model的所有fields
+     * 迭代出所有entity的所有fields
      * @param clas 准备做为创建表依据的class
      * @return 表的全部字段
      */
@@ -39,7 +38,7 @@ public class MySqlInfoUtil {
             if (ColumnUtils.hasColumn(field, clas)) {
                 MySqlTypeAndLength mySqlTypeAndLength = getTypeAndLength(field, clas);
                 MySqlEntityColumn entityColumn = new MySqlEntityColumn()
-                        .setColumnName(ColumnUtils.getColumnName(field, clas))
+                        .setName(ColumnUtils.getColumnName(field, clas))
                         .setOrder(ColumnUtils.getColumnOrder(field, clas))
                         .setFieldType(mySqlTypeAndLength.getType().toLowerCase())
                         .setParamCount(mySqlTypeAndLength.getParamCount())
@@ -50,18 +49,14 @@ public class MySqlInfoUtil {
                         .setDefaultValueNative(ColumnUtils.getDefaultValueNative(field, clas))
                         .setComment(ColumnUtils.getComment(field, clas));
                 // 长度需要配置
+                entityColumn.setParamCount(mySqlTypeAndLength.getLength());
                 if (mySqlTypeAndLength.getParamCount() == 1) {
-                    entityColumn.setParamCount(mySqlTypeAndLength.getLength());
+                    entityColumn.setLength(mySqlTypeAndLength.getLength());
                 }
                 // 小数也需要配置
                 else if (mySqlTypeAndLength.getParamCount() == 2) {
-                    entityColumn.setParamCount(mySqlTypeAndLength.getLength())
+                    entityColumn.setLength(mySqlTypeAndLength.getLength())
                             .setDecimalLength(mySqlTypeAndLength.getDecimalLength());
-                }
-                // 获取当前字段的@IgnoreUpdate注解
-                IgnoreUpdate ignoreUpdate = field.getAnnotation(IgnoreUpdate.class);
-                if (Objects.nonNull(ignoreUpdate)) {
-                    entityColumn.setIgnoreUpdate(ignoreUpdate.value());
                 }
                 entityColumns.add(entityColumn);
             }
@@ -99,8 +94,6 @@ public class MySqlInfoUtil {
         }
         return fields;
     }
-
-
 
 
     /**
@@ -144,5 +137,20 @@ public class MySqlInfoUtil {
         if (decimalLength != 0) {
             typeAndLength.setDecimalLength(decimalLength);
         }
+    }
+
+    /**
+     * 构建括号参数
+     * @param args 参数列表
+     * @return (`x1`,`x2`)
+     */
+    public static String buildBracketParams(List<String> args){
+        StringBuilder sb = new StringBuilder("(");
+        for (String arg : args) {
+            sb.append("`").append(arg).append("`,");
+        }
+        sb.delete(sb.length()-1,sb.length());
+        sb.append(")");
+        return sb.toString();
     }
 }

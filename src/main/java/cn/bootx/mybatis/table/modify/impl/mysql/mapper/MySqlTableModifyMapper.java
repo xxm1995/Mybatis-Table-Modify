@@ -3,9 +3,7 @@ package cn.bootx.mybatis.table.modify.impl.mysql.mapper;
 import java.util.List;
 import java.util.Map;
 
-import cn.bootx.mybatis.table.modify.impl.mysql.entity.MySqlTableIndexInfo;
-import cn.bootx.mybatis.table.modify.impl.mysql.entity.MySqlTableInfo;
-import cn.bootx.mybatis.table.modify.impl.mysql.entity.MysqlTableColumnInfo;
+import cn.bootx.mybatis.table.modify.impl.mysql.entity.*;
 import cn.bootx.mybatis.table.modify.domain.TableConfig;
 import com.baomidou.mybatisplus.annotation.InterceptorIgnore;
 import org.apache.ibatis.annotations.Param;
@@ -21,9 +19,15 @@ public interface MySqlTableModifyMapper {
 
     /**
      * 根据结构注解解析出来的信息创建表
-     * @param tableMap 表结构的map
+     * @param table 创建表的内容
      */
-    void createTable(@Param("tableMap") Map<String, TableConfig> tableMap);
+    void createTable(@Param("table") MySqlCreateParam table);
+
+    /**
+     * 根据表结构和注解解析出来的信息进行更新表
+     * @param table 创建表的内容
+     */
+    void modifyTable(@Param("table") MySqlModifyParam table);
 
     /**
      * 根据表名查询表在库中是否存在
@@ -44,14 +48,21 @@ public interface MySqlTableModifyMapper {
      * @param tableName 表结构的map
      * @return 表的字段结构等信息
      */
-    List<MysqlTableColumnInfo> findColumnByTableName(@Param("tableName") String tableName);
+    List<MysqlTableColumn> findColumnByTableName(@Param("tableName") String tableName);
 
     /**
      * 查询当前表存在的索引(除了主键索引primary)
      * @param tableName 表名
      * @return 索引名列表
      */
-    List<MySqlTableIndexInfo> findIndexByTableName(@Param("tableName") String tableName);
+    List<MySqlTableIndex> findIndexByTableName(@Param("tableName") String tableName);
+
+    /**
+     * 查询当前表存在的主键索引
+     * @param tableName 表名
+     * @return 索引名列表
+     */
+    List<MySqlTableIndex> findPrimaryIndexByTableName(@Param("tableName") String tableName);
 
     /**
      * 增加字段

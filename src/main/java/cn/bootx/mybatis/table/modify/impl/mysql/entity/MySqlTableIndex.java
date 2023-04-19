@@ -10,12 +10,12 @@ import lombok.Setter;
  */
 @Getter
 @Setter
-public class MySqlTableIndexInfo {
+public class MySqlTableIndex {
 
     /** 是否不能重复 */
     private boolean nonUnique;
 
-    /** 索引的名称,则始终为PRIMARY */
+    /** 索引的名称 */
     private String indexName;
 
     /** 列名称 */

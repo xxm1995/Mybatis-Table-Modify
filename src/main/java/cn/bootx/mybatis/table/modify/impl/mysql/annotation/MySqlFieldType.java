@@ -4,8 +4,6 @@ import cn.bootx.mybatis.table.modify.impl.mysql.constants.MySqlFieldTypeEnum;
 
 import java.lang.annotation.*;
 
-import static cn.bootx.mybatis.table.modify.impl.mysql.constants.MySqlFieldTypeEnum.DEFAULT;
-
 /**
  * MySQL数据库字段类型
  * @author xxm
