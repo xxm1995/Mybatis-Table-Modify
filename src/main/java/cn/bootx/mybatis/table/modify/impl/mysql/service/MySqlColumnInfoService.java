@@ -129,21 +129,21 @@ public class MySqlColumnInfoService {
      * @return 需要修改的字段
      */
     private List<MySqlEntityColumn> getUpdateColumns(List<MySqlEntityColumn> entityColumns, List<MysqlTableColumn> tableColumnList) {
-        // 现有的数据库索引配置
+        // 现有的数据库字段配置
         List<String> tableIndexNames = tableColumnList.stream()
-                .map(MysqlTableColumn::getColumnComment)
+                .map(MysqlTableColumn::getColumnName)
                 .map(String::toLowerCase)
                 .distinct()
                 .collect(Collectors.toList());
 
-        // 现有的数据库索引配置 MAP
+        // 现有的数据库字段配置 MAP
         val tableColumnMap = tableColumnList.stream()
                 .collect(Collectors.toMap(column -> column.getColumnName().toLowerCase(), Function.identity()));
 
-        // 把两者都有的索引筛选出来进行对比
+        // 把两者都有的字段筛选出来进行对比, 筛选出来有不同的字段
         return entityColumns.stream()
                 .filter(column->tableIndexNames.contains(column.getName().toLowerCase()))
-                .filter(entityColumn->compareColumn(tableColumnMap.get(entityColumn.getName().toLowerCase()),entityColumn))
+                .filter(entityColumn->!compareColumn(tableColumnMap.get(entityColumn.getName().toLowerCase()),entityColumn))
                 .collect(Collectors.toList());
 
     }
