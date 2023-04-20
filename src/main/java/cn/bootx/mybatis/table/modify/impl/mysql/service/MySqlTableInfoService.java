@@ -61,6 +61,7 @@ public class MySqlTableInfoService {
      */
     public void getModifyTable(Class<?> clas,MySqlModifyMap baseTableMap){
         String tableName = ColumnUtils.getTableName(clas);
+
         MySqlTableUpdate updateTableInfo = new MySqlTableUpdate()
                 .setName(tableName);
         MySqlTableInfo tableInfo = mysqlTableModifyMapper.findTableByTableName(tableName);
@@ -68,7 +69,7 @@ public class MySqlTableInfoService {
         String entityComment = ColumnUtils.getTableComment(clas);
         if (!Objects.equals(tableInfo.getTableComment(),entityComment)){
             updateTableInfo.setComment(entityComment)
-                    .setCharsetUpdate(true);
+                    .setCommentUpdate(true);
         }
 
         // 比对表字符集, 表不为空且字符集不一致
@@ -77,7 +78,7 @@ public class MySqlTableInfoService {
         if (Objects.nonNull(entityCharset)&&
                 tableCharset.equalsIgnoreCase(entityCharset.getValue())){
             updateTableInfo.setCharset(entityComment)
-                    .setCommentUpdate(true);
+                    .setCharsetUpdate(true);
         }
         // 获取表引擎
         MySqlEngineEnum entityEngine = getEntityEngine(clas);

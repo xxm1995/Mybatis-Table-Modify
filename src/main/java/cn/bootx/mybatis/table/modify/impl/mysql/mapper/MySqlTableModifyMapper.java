@@ -6,6 +6,7 @@ import java.util.Map;
 import cn.bootx.mybatis.table.modify.impl.mysql.entity.*;
 import cn.bootx.mybatis.table.modify.domain.TableConfig;
 import com.baomidou.mybatisplus.annotation.InterceptorIgnore;
+import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 
 /**
@@ -14,6 +15,7 @@ import org.apache.ibatis.annotations.Param;
  * @author sunchenbin
  *
  */
+@Mapper
 @InterceptorIgnore(tenantLine = "true")
 public interface MySqlTableModifyMapper {
 
@@ -64,58 +66,11 @@ public interface MySqlTableModifyMapper {
      */
     List<MySqlTableIndex> findPrimaryIndexByTableName(@Param("tableName") String tableName);
 
-    /**
-     * 增加字段
-     * @param tableMap 表结构的map
-     */
-    void addTableField(@Param("tableMap") Map<String, Object> tableMap);
-
-    /**
-     * 删除字段
-     * @param tableMap 表结构的map
-     */
-    void removeTableField(@Param("tableMap") Map<String, Object> tableMap);
-
-    /**
-     * 更新表属性
-     * @param tableMap 表结构的map
-     */
-    void modifyTableProperty(@Param("tableMap") Map<String, TableConfig> tableMap);
-
-    /**
-     * 修改字段
-     * @param tableMap 表结构的map
-     */
-    void modifyTableField(@Param("tableMap") Map<String, Object> tableMap);
-
-    /**
-     * 删除主键约束，附带修改其他字段属性功能
-     * @param tableMap 表结构的map
-     */
-    void dropKeyTableField(@Param("tableMap") Map<String, Object> tableMap);
 
     /**
      * 根据表名删除表
      * @param tableName 表名
      */
     void dropTableByName(@Param("tableName") String tableName);
-
-    /**
-     * 删除表索引
-     * @param tableMap
-     */
-    void dropTableIndex(@Param("tableMap") Map<String, Object> tableMap);
-
-    /**
-     * 创建索引
-     * @param tableMap
-     */
-    void addTableIndex(@Param("tableMap") Map<String, Object> tableMap);
-
-    /**
-     * 创建唯一约束
-     * @param tableMap
-     */
-    void addTableUnique(@Param("tableMap") Map<String, Object> tableMap);
 
 }

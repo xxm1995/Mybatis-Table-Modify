@@ -2,11 +2,13 @@ package cn.bootx.mybatis.table.modify.impl.mysql.util;
 
 import cn.bootx.mybatis.table.modify.annotation.DbColumn;
 import cn.bootx.mybatis.table.modify.impl.mysql.annotation.MySqlFieldType;
+import cn.bootx.mybatis.table.modify.impl.mysql.annotation.MySqlIndex;
 import cn.bootx.mybatis.table.modify.impl.mysql.constants.MySql4JavaType;
 import cn.bootx.mybatis.table.modify.impl.mysql.entity.MySqlEntityColumn;
 import cn.bootx.mybatis.table.modify.impl.mysql.entity.MySqlTypeAndLength;
 import cn.bootx.mybatis.table.modify.utils.ColumnUtils;
 import cn.hutool.core.util.ObjectUtil;
+import cn.hutool.core.util.StrUtil;
 import lombok.experimental.UtilityClass;
 
 import java.lang.reflect.Field;
@@ -49,7 +51,7 @@ public class MySqlInfoUtil {
                         .setDefaultValueNative(ColumnUtils.getDefaultValueNative(field, clas))
                         .setComment(ColumnUtils.getComment(field, clas));
                 // 长度需要配置
-                entityColumn.setParamCount(mySqlTypeAndLength.getLength());
+                entityColumn.setLength(mySqlTypeAndLength.getLength());
                 if (mySqlTypeAndLength.getParamCount() == 1) {
                     entityColumn.setLength(mySqlTypeAndLength.getLength());
                 }
@@ -112,7 +114,7 @@ public class MySqlInfoUtil {
             typeAndLength = mySqlFieldType.value().getTypeAndLength();
         }
 
-        if (ObjectUtil.isAllNotEmpty(typeAndLength)) {
+        if (Objects.isNull(typeAndLength)) {
             throw new RuntimeException("字段名：" + field.getName() + "不支持" + field.getGenericType()
                     + "类型转换到mysql类型，仅支持JavaToMysqlType类中的类型默认转换，异常抛出！");
         }
@@ -152,5 +154,15 @@ public class MySqlInfoUtil {
         sb.delete(sb.length()-1,sb.length());
         sb.append(")");
         return sb.toString();
+    }
+
+    /**
+     * 获取索引的名称，不设置则默认为索引类型+用_分隔的字段名计划
+     */
+    public static String getIndexName(MySqlIndex mySqlIndex){
+        if (StrUtil.isNotBlank(mySqlIndex.name())){
+            return mySqlIndex.name();
+        }
+        return mySqlIndex.type().getPrefix()+String.join("_", mySqlIndex.columns());
     }
 }

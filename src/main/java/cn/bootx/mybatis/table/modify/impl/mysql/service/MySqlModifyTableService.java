@@ -33,8 +33,13 @@ public class MySqlModifyTableService {
      */
     public void modifyTableConstruct(MySqlModifyMap baseTableMap) {
         List<MySqlTableUpdate> updateTables = baseTableMap.getUpdateTables();
-        for (MySqlTableUpdate updateTable : updateTables) {
-            mysqlTableModifyMapper.modifyTable(this.buildUpdateParam(updateTable,baseTableMap));
+        for (MySqlTableUpdate table : updateTables) {
+            MySqlModifyParam mySqlModifyParam = this.buildUpdateParam(table, baseTableMap);
+            if (mySqlModifyParam.isUpdate()) {
+                log.info("开始更新表：" + table.getName());
+                mysqlTableModifyMapper.modifyTable(mySqlModifyParam);
+                log.info("完成更新表：" + table.getName());
+            }
         }
     }
 

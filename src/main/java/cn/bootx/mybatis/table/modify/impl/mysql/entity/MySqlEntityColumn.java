@@ -90,7 +90,7 @@ public class MySqlEntityColumn implements Cloneable {
         if (getParamCount() == 2){
             sb.append("(")
                     .append(getLength())
-                    .append(", ")
+                    .append(",")
                     .append(getDecimalLength())
                     .append(")");
         }

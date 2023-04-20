@@ -1,9 +1,6 @@
 package cn.bootx.mybatis.table.modify.utils;
 
-import cn.bootx.mybatis.table.modify.annotation.DbColumn;
-import cn.bootx.mybatis.table.modify.annotation.EnableTimeSuffix;
-import cn.bootx.mybatis.table.modify.annotation.IsNativeDefValue;
-import cn.bootx.mybatis.table.modify.annotation.DbTable;
+import cn.bootx.mybatis.table.modify.annotation.*;
 import cn.bootx.mybatis.table.modify.annotation.impl.DbColumnImpl;
 import cn.bootx.mybatis.table.modify.constants.TableCharset;
 import cn.hutool.core.util.StrUtil;
@@ -72,12 +69,12 @@ public class ColumnUtils {
     public static String getTableComment(Class<?> clazz) {
         DbTable table = clazz.getAnnotation(DbTable.class);
         if (!hasTableAnnotation(clazz)) {
-            return "";
+            return null;
         }
         if (table != null && StrUtil.isNotBlank(table.comment())) {
             return table.comment();
         }
-        return "";
+        return null;
     }
 
     /**
@@ -144,21 +141,26 @@ public class ColumnUtils {
      * 是否是主键
      */
     public static boolean isKey(Field field, Class<?> clazz) {
-        DbColumn column = getColumnAnno(field, clazz);
         if (!hasColumn(field, clazz)) {
             return false;
         }
+
+        DbColumn column = getColumnAnno(field, clazz);
+        IsKey isKey = field.getAnnotation(IsKey.class);
         TableId tableId = field.getAnnotation(TableId.class);
-        if (column != null && column.isKey()) {
+        if (Objects.nonNull(column) && column.isKey()) {
+            return true;
+        } if (Objects.nonNull(isKey)) {
             return true;
         }
-        else {
-            return null != tableId;
+        if (Objects.nonNull(tableId)){
+            return true;
         }
+            return false;
     }
 
     /**
-     * 是否是自增主键
+     * 是否是自增
      */
     public static boolean isAutoIncrement(Field field, Class<?> clazz) {
         DbColumn column = getColumnAnno(field, clazz);

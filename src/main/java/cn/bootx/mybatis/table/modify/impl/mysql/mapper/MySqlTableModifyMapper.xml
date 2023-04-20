@@ -59,120 +59,37 @@
         <result property="seqInIndex" column="seq_in_index"/>
     </resultMap>
 
-    <!-- 抽取出来的公共部分 -->
-    <sql id="commonSql">
-        <if test="fields.fileTypeLength == 0">
-            `${fields.fieldName}` ${fields.fieldType}
-        </if>
-        <if test="fields.fileTypeLength == 1">
-            `${fields.fieldName}` ${fields.fieldType}(${fields.fieldLength})
-        </if>
-        <if test="fields.fileTypeLength == 2">
-            `${fields.fieldName}`
-            ${fields.fieldType}(${fields.fieldLength},${fields.fieldDecimalLength})
-        </if>
-        <if test="fields.fieldIsNull">
-            NULL
-        </if>
-        <if test="!fields.fieldIsNull">
-            NOT NULL
-        </if>
-        <if test="fields.fieldIsAutoIncrement">
-            AUTO_INCREMENT
-        </if>
-        <!-- 不是自增长的才能有默认值 -->
-        <!-- 并且不为null时，因为null是默认的没必要写 -->
-        <if test="!fields.fieldIsAutoIncrement and !fields.fieldIsNull and fields.fieldDefaultValue != null">
-            <if test="fields.fieldType == 'bit' and !fields.fieldDefaultValueNative">
-                <if test="fields.fieldDefaultValue == 'true'.toString()">
-                    DEFAULT 1
-                </if>
-                <if test="fields.fieldDefaultValue == 'false'.toString()">
-                    DEFAULT 0
-                </if>
-                <if test="fields.fieldDefaultValue == '1'.toString()">
-                    DEFAULT 1
-                </if>
-                <if test="fields.fieldDefaultValue == '0'.toString()">
-                    DEFAULT 0
-                </if>
-            </if>
-            <if test="fields.fieldType == 'bit' and fields.fieldDefaultValueNative">
-                DEFAULT ${fields.fieldDefaultValue}
-            </if>
-            <if test="fields.fieldType != 'bit'">
-                <if test="fields.fieldDefaultValueNative">
-                    DEFAULT ${fields.fieldDefaultValue}
-                </if>
-                <if test="!fields.fieldDefaultValueNative">
-                    DEFAULT #{fields.fieldDefaultValue}
-                </if>
-            </if>
-        </if>
-        <!-- 不是自增长的才能有默认值 -->
-        <!-- 允许是空时，并且默认值不是NUll -->
-        <if test="!fields.fieldIsAutoIncrement and fields.fieldIsNull and fields.fieldDefaultValue != null">
-            <if test="fields.fieldType == 'bit' and !fields.fieldDefaultValueNative">
-                <if test="fields.fieldDefaultValue == 'true'.toString()">
-                    DEFAULT 1
-                </if>
-                <if test="fields.fieldDefaultValue == 'false'.toString()">
-                    DEFAULT 0
-                </if>
-                <if test="fields.fieldDefaultValue == '1'.toString()">
-                    DEFAULT 1
-                </if>
-                <if test="fields.fieldDefaultValue == '0'.toString()">
-                    DEFAULT 0
-                </if>
-            </if>
-            <if test="fields.fieldType == 'bit' and fields.fieldDefaultValueNative">
-                DEFAULT ${fields.fieldDefaultValue}
-            </if>
-            <if test="fields.fieldType != 'bit'">
-                <if test="fields.fieldDefaultValueNative">
-                    DEFAULT ${fields.fieldDefaultValue}
-                </if>
-                <if test="!fields.fieldDefaultValueNative">
-                    DEFAULT #{fields.fieldDefaultValue}
-                </if>
-            </if>
-        </if>
-        <if test="fields.fieldComment != ''">
-            COMMENT #{fields.fieldComment}
-        </if>
-    </sql>
-
     <!-- 创建表 -->
     <update id="createTable"  parameterType="cn.bootx.mybatis.table.modify.impl.mysql.entity.MySqlCreateParam">
         <!-- 表名-->
-        create table `${table.name}`
-        <trim prefix="set" suffixOverrides=",">
+        create table `${table.name}` (
+        <trim prefix="" suffixOverrides=",">
             <!-- 行 -->
-            <foreach collection="table.columns" item="column" separator=",">
-                `${column}`
+            <foreach collection="table.columns" item="column">
+                ${column},
             </foreach>
             <!-- 主键索引 -->
-            <if test="table.engine != null and table.engine != null">
-                PRIMARY KEY ${keys} USING BTREE,
+            <if test="table.keys != null and table.keys != ''">
+                PRIMARY KEY ${table.keys} USING BTREE,
             </if>
             <!-- 索引 -->
-            <foreach collection="table.indexes" item="index" separator=",">
-                `${index}`
+            <foreach collection="table.indexes" item="index">
+                ${index},
             </foreach>
-            <!-- 表信息 引擎-->
-            <if test="table.engine != null and table.engine != ''">
-                ENGINE = #{table.engine},
-            </if>
-            <!-- 表信息 字符集-->
-            <if test="table.charset != null and table.charset != ''">
-                CHARSET = #{table.charset},
-            </if>
-            <!-- 表信息 备注-->
-            <if test="table.comment != null and table.comment != ''">
-                COMMENT = #{table.comment},
-            </if>
         </trim>
+        )
+        <!-- 表信息 引擎-->
+        <if test="table.engine != null and table.engine != ''">
+            ENGINE = ${table.engine}
+        </if>
+        <!-- 表信息 字符集-->
+        <if test="table.charset != null and table.charset != ''">
+            CHARSET = ${table.charset}
+        </if>
+        <!-- 表信息 备注-->
+        <if test="table.comment != null and table.comment != ''">
+            COMMENT = '${table.comment}'
+        </if>
         ;
     </update>
 
@@ -180,18 +97,18 @@
     <update id="modifyTable"  parameterType="cn.bootx.mybatis.table.modify.impl.mysql.entity.MySqlModifyParam">
         <!-- 表名-->
         alter table `${table.name}`
-        <trim prefix="set" suffixOverrides=",">
+        <trim prefix="" suffixOverrides=",">
             <!-- 删除行 -->
-            <foreach collection="table.dropColumns" item="column" separator=",">
-                DROP COLUMN `${column}`
+            <foreach collection="table.dropColumns" item="column">
+                DROP COLUMN `${column}`,
             </foreach>
             <!-- 修改行 -->
-            <foreach collection="table.modifyColumns" item="column" separator=",">
-                MODIFY COLUMN `${column}`
+            <foreach collection="table.modifyColumns" item="column">
+                MODIFY COLUMN ${column},
             </foreach>
             <!-- 新增行 -->
-            <foreach collection="table.addColumns" item="column" separator=",">
-                ADD COLUMN `${column}`
+            <foreach collection="table.addColumns" item="column">
+                ADD COLUMN ${column},
             </foreach>
             <!-- 主键索引 -->
             <if test="table.keys != null and table.keys != ''">
@@ -199,24 +116,24 @@
                 ADD PRIMARY KEY ${table.keys} USING BTREE,
             </if>
             <!-- 删除索引 -->
-            <foreach collection="table.dropIndexes" item="index" separator=",">
-                `${index}`
+            <foreach collection="table.dropIndexes" item="index">
+                DROP INDEX `${index}`,
             </foreach>
             <!-- 新增索引 -->
-            <foreach collection="table.addIndexes" item="index" separator=",">
-                `${index}`
+            <foreach collection="table.addIndexes" item="index">
+                ADD ${index},
             </foreach>
             <!-- 表信息 引擎-->
             <if test="table.engine != null and table.engine != ''">
-                ENGINE = #{table.engine},
+                ENGINE = ${table.engine}
             </if>
             <!-- 表信息 字符集-->
             <if test="table.charset != null and table.charset != ''">
-                CHARSET = #{table.charset},
+                CHARSET = ${table.charset}
             </if>
             <!-- 表信息 备注-->
-            <if test="table.commentUpdate == null">
-                COMMENT = '#{table.comment}',
+            <if test="table.commentUpdate">
+                COMMENT = '${table.comment}'
             </if>
         </trim >
         ;
@@ -239,75 +156,6 @@
         select * from information_schema.columns where table_name = #{tableName} and table_schema = (select database())
     </select>
 
-    <!-- 增加字段 -->
-    <select id="addTableField" parameterType="java.util.Map">
-
-        <foreach collection="tableMap" mySqlIndex="key" item="fields" separator=";">
-            alter table `${key}` add
-            <include refid="commonSql"></include>
-            <if test="fields.fieldIsKey">
-                PRIMARY KEY
-            </if>
-        </foreach>
-
-    </select>
-
-    <!-- 删除字段 -->
-    <select id="removeTableField" parameterType="java.util.Map">
-        <foreach collection="tableMap" mySqlIndex="key" item="field" separator=";">
-            alter table `${key}` drop `${field}`
-        </foreach>
-    </select>
-
-    <!-- 更新表属性 -->
-    <select id="modifyTableProperty" parameterType="java.util.Map">
-        <foreach collection="tableMap" mySqlIndex="key" item="value">
-            alter table `${key}`
-            <foreach collection="value.map" mySqlIndex="ckey" item="cvalue">
-                <if test="ckey == 'table_comment'">
-                    COMMENT  #{cvalue}
-                </if>
-                <if test="ckey == 'table_collation'">
-                    CHARSET  #{cvalue}
-                </if>
-                <if test="ckey == 'engine'">
-                    ENGINE  #{cvalue}
-                </if>
-            </foreach>
-            ;
-        </foreach>
-    </select>
-
-    <!-- 修改字段 -->
-    <select id="modifyTableField" parameterType="java.util.Map">
-
-        <foreach collection="tableMap" mySqlIndex="key" item="fields" separator=";">
-            alter table `${key}` modify
-            <include refid="commonSql"></include>
-            <if test="fields.fieldIsKey">
-                PRIMARY KEY
-            </if>
-        </foreach>
-
-    </select>
-
-
-    <!-- 删除主键字段 -->
-    <select id="dropKeyTableField" parameterType="java.util.Map">
-
-        <foreach collection="tableMap" mySqlIndex="key" item="fields" separator=";">
-            alter table `${key}` modify
-            <include refid="commonSql"></include>
-            ,drop primary key
-        </foreach>
-
-    </select>
-
-    <!-- 删除表 -->
-    <select id="dropTableByName" parameterType="String">
-        DROP TABLE IF EXISTS `${tableName}`;
-    </select>
-
     <!-- 查询当前表存在的索引, 排除主键索引primary -->
     <select id="findIndexByTableName" resultMap="MysqlIndexResultMap" parameterType="string">
         select index_name,index_type,index_comment,column_name,non_unique,seq_in_index from information_schema.statistics
@@ -322,55 +170,10 @@
           and table_name = #{tableName}
     </select>
 
-    <!-- 删除索引 -->
-    <select id="dropTableIndex" parameterType="java.util.Map">
-        <foreach collection="tableMap" mySqlIndex="tableName" item="indexName">
-            DROP INDEX `${indexName}` on `${tableName}`
-        </foreach>
+    <!-- 删除表 -->
+    <select id="dropTableByName" parameterType="String">
+        DROP TABLE IF EXISTS `${tableName}`;
     </select>
 
-    <!-- 创建索引 -->
-    <select id="addTableIndex" parameterType="java.util.Map">
-
-        <foreach collection="tableMap" mySqlIndex="tableName" item="fields" separator=";">
-            CREATE INDEX ${fields.filedIndexName}
-            ON `${tableName}` (
-            <foreach collection="fields.filedIndexValue" mySqlIndex="mySqlIndex" item="columnName">
-                <if test="fields.filedIndexValue.size == 1">
-                    ${columnName}
-                </if>
-                <if test="fields.filedIndexValue.size > 1">
-                    ${columnName}
-                    <if test="fields.filedIndexValue.size != mySqlIndex + 1">
-                        ,
-                    </if>
-                </if>
-            </foreach>
-            )
-        </foreach>
-
-    </select>
-
-    <!-- 创建唯一约束 -->
-    <select id="addTableUnique" parameterType="java.util.Map">
-
-        <foreach collection="tableMap" mySqlIndex="tableName" item="fields" separator=";">
-            CREATE UNIQUE INDEX ${fields.filedUniqueName}
-            ON `${tableName}` (
-            <foreach collection="fields.filedUniqueValue" mySqlIndex="mySqlIndex" item="columnName">
-                <if test="fields.filedUniqueValue.size == 1">
-                    ${columnName}
-                </if>
-                <if test="fields.filedUniqueValue.size > 1">
-                    ${columnName}
-                    <if test="fields.filedUniqueValue.size != mySqlIndex + 1">
-                        ,
-                    </if>
-                </if>
-            </foreach>
-            )
-        </foreach>
-
-    </select>
 
 </mapper>

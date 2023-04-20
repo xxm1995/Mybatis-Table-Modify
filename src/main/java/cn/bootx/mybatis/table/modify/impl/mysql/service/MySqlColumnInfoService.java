@@ -78,9 +78,9 @@ public class MySqlColumnInfoService {
             baseTableMap.getAddColumns().put(tableName, addColumns);
         }
         // 找出删除的字段
-        List<String> removeColumns = getRemoveColumns(entityColumns, tableColumns);
-        if (removeColumns.size() != 0) {
-            baseTableMap.getDropColumns().put(tableName, removeColumns);
+        List<String> dropColumns = getDropColumns(entityColumns, tableColumns);
+        if (dropColumns.size() != 0) {
+            baseTableMap.getDropColumns().put(tableName, dropColumns);
         }
         // 找出更新的字段
         List<MySqlEntityColumn> updateColumns = getUpdateColumns(entityColumns,tableColumns);
@@ -103,7 +103,7 @@ public class MySqlColumnInfoService {
                 .collect(Collectors.toList());
         // 数据库中不存在, 进行添加
         return entityColumns.stream()
-                .filter(column->!tableColumnNames.contains(column.getComment().toLowerCase()))
+                .filter(column->!tableColumnNames.contains(column.getName().toLowerCase()))
                 .collect(Collectors.toList());
     }
 
@@ -112,7 +112,7 @@ public class MySqlColumnInfoService {
      * @param entityColumns entity中的所有字段
      * @param tableColumns 数据库中的结构
      */
-    private List<String> getRemoveColumns(List<MySqlEntityColumn> entityColumns, List<MysqlTableColumn> tableColumns) {
+    private List<String> getDropColumns(List<MySqlEntityColumn> entityColumns, List<MysqlTableColumn> tableColumns) {
         List<String> entityColumnNames = entityColumns.stream()
                 .map(MySqlEntityColumn::getName)
                 .map(String::toLowerCase)

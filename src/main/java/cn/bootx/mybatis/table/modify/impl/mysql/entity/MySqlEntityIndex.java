@@ -41,11 +41,7 @@ public class MySqlEntityIndex {
     public String toIndex(){
         StringBuilder sb = new StringBuilder(getType().getName()).append(" ");
         // 索引名称
-        if (StrUtil.isNotBlank(getName())){
-            sb.append("`").append(getName()).append("`");
-        } else {
-            sb.append("`").append(String.join("_", getColumns())).append("`");
-        }
+        sb.append("`").append(getName()).append("`");
         // 索引字段
         sb.append(MySqlInfoUtil.buildBracketParams(getColumns()));
         // 所使用的索引类型

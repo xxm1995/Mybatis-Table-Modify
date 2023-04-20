@@ -22,7 +22,7 @@ public @interface MySqlIndex {
     MySqlIndexType type() default MySqlIndexType.NORMAL;
 
     /**
-     * 索引的名字，不设置默认为索引类型+用_分隔的字段名计划
+     * 索引的名字, 不设置默认为索引类型+用_分隔的字段名计划
      */
     String name() default "";
 

@@ -5,6 +5,7 @@ import cn.bootx.mybatis.table.modify.impl.mysql.constants.MySqlEngineEnum;
 import lombok.Data;
 import lombok.experimental.Accessors;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -28,11 +29,11 @@ public class MySqlCreateParam {
     private String engine;
 
     /** 行列表 */
-    private List<String> columns;
+    private List<String> columns = new ArrayList<>();
 
     /** 主键列表 */
     private String keys;
 
     /** 索引列表 */
-    private List<String> indexes;
+    private List<String> indexes = new ArrayList<>();
 }

@@ -1,15 +1,17 @@
 package cn.bootx.mybatis.table.modify.impl.mysql.service;
 
+import cn.bootx.mybatis.table.modify.constants.TableCharset;
+import cn.bootx.mybatis.table.modify.impl.mysql.constants.MySqlEngineEnum;
 import cn.bootx.mybatis.table.modify.impl.mysql.entity.*;
 import cn.bootx.mybatis.table.modify.impl.mysql.mapper.MySqlTableModifyMapper;
 import cn.bootx.mybatis.table.modify.impl.mysql.util.MySqlInfoUtil;
 import cn.hutool.core.collection.CollUtil;
-import cn.hutool.core.util.StrUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 /**
@@ -45,9 +47,11 @@ public class MySqlCreateTableService {
         MySqlCreateParam mySqlCreateParam = new MySqlCreateParam();
         // 表基础信息
         mySqlCreateParam.setName(table.getName())
-                .setEngine(table.getEngine().name())
+                .setEngine(Optional.ofNullable(table.getEngine()).map(MySqlEngineEnum::getValue).orElse(null))
                 .setComment(table.getComment())
-                .setCharset(table.getCharset().getValue());
+                .setCharset(Optional.ofNullable(table.getCharset()).map(TableCharset::getValue).orElse(null));
+
+
         // 字段
         List<MySqlEntityColumn> columns = modifyMap.getAddColumns()
                 .get(table.getName());

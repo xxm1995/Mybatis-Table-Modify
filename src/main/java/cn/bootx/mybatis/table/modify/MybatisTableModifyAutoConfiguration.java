@@ -1,5 +1,7 @@
 package cn.bootx.mybatis.table.modify;
 
+import org.apache.ibatis.annotations.Mapper;
+import org.mybatis.spring.annotation.MapperScan;
 import org.springframework.boot.context.properties.ConfigurationPropertiesScan;
 import org.springframework.context.annotation.ComponentScan;
 
@@ -10,6 +12,7 @@ import org.springframework.context.annotation.ComponentScan;
  * @date 2023/4/6
  */
 @ComponentScan
+@MapperScan(annotationClass = Mapper.class)
 @ConfigurationPropertiesScan
 public class MybatisTableModifyAutoConfiguration {
 

@@ -1,8 +1,11 @@
 package cn.bootx.mybatis.table.modify.impl.mysql.entity;
 
+import cn.hutool.core.collection.CollUtil;
+import cn.hutool.core.util.StrUtil;
 import lombok.Data;
 import lombok.experimental.Accessors;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -38,17 +41,32 @@ public class MySqlModifyParam {
     private String keys;
 
     /** 新增索引列表 */
-    private List<String> addIndexes;
+    private List<String> addIndexes = new ArrayList<>();
 
     /** 删除索引列表 */
-    private List<String> dropIndexes;
+    private List<String> dropIndexes = new ArrayList<>();
 
     /** 新增字段列表 */
-    private List<String> addColumns;
+    private List<String> addColumns = new ArrayList<>();
 
     /** 修改字段列表 */
-    private List<String> modifyColumns;
+    private List<String> modifyColumns = new ArrayList<>();
 
     /** 删除字段列表 */
-    private List<String> dropColumns;
+    private List<String> dropColumns = new ArrayList<>();
+
+    /**
+     * 是否需要更新
+     */
+    public boolean isUpdate(){
+        return commentUpdate
+                ||charsetUpdate
+                ||engineUpdate
+                || StrUtil.isNotBlank(keys)
+                || CollUtil.isNotEmpty(addIndexes)
+                || CollUtil.isNotEmpty(dropIndexes)
+                || CollUtil.isNotEmpty(addColumns)
+                || CollUtil.isNotEmpty(modifyColumns)
+                || CollUtil.isNotEmpty(dropColumns);
+    }
 }

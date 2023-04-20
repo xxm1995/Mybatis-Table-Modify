@@ -7,6 +7,7 @@ import cn.bootx.mybatis.table.modify.impl.mysql.entity.MySqlEntityIndex;
 import cn.bootx.mybatis.table.modify.impl.mysql.entity.MySqlModifyMap;
 import cn.bootx.mybatis.table.modify.impl.mysql.entity.MySqlTableIndex;
 import cn.bootx.mybatis.table.modify.impl.mysql.mapper.MySqlTableModifyMapper;
+import cn.bootx.mybatis.table.modify.impl.mysql.util.MySqlInfoUtil;
 import cn.bootx.mybatis.table.modify.utils.ColumnUtils;
 import cn.hutool.core.collection.CollUtil;
 import cn.hutool.core.collection.ListUtil;
@@ -110,7 +111,7 @@ public class MySqlIndexInfoService {
         }
 
         // 定义的索引名称集合
-        List<String> allFieldNameList = entityIndexes.stream()
+        List<String> entityIndexNames = entityIndexes.stream()
                 .map(MySqlEntityIndex::getName)
                 .map(String::toLowerCase)
                 .distinct()
@@ -118,7 +119,7 @@ public class MySqlIndexInfoService {
         // 将要删除的索引筛选出来
         return tableIndexes.stream()
                 .map(MySqlTableIndex::getIndexName)
-                .filter(indexName-> !allFieldNameList.contains(indexName.toLowerCase()))
+                .filter(indexName-> !entityIndexNames.contains(indexName.toLowerCase()))
                 .distinct()
                 .collect(Collectors.toList());
 
@@ -213,17 +214,23 @@ public class MySqlIndexInfoService {
      * 获取实体类配置的索引
      */
     private List<MySqlEntityIndex> getEntityIndexes(Class<?> clas){
+        // 多个索引注释处理
         List<MySqlIndex> indexList = Optional.ofNullable(clas.getAnnotation(MySqlIndexes.class))
                 .map(MySqlIndexes::value)
                 .map(ListUtil::of)
-                .orElse(null);
+                .orElse(new ArrayList<>(0));
         if (CollUtil.isEmpty(indexList)) {
-            indexList = ListUtil.of(clas.getAnnotation(MySqlIndex.class));
+            // 单个注解处理
+            MySqlIndex mySqlIndex = clas.getAnnotation(MySqlIndex.class);
+            if (Objects.nonNull(mySqlIndex)){
+                indexList = ListUtil.of(mySqlIndex);
+            }
         }
+
         return indexList.stream()
                 .map(index -> new MySqlEntityIndex()
                         .setType(index.type())
-                        .setName(index.name())
+                        .setName(MySqlInfoUtil.getIndexName(index))
                         .setColumns(Arrays.asList(index.columns()))
                         .setComment(index.comment()))
                 .collect(Collectors.toList());
