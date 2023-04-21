@@ -54,9 +54,9 @@ public @interface DbColumn {
     boolean isAutoIncrement() default false;
 
     /**
-     * 默认值，默认为null
+     * 默认值，字符串类型需要加使用单引号包裹，如‘abc’
      */
-    String defaultValue() default "DEFAULT";
+    String defaultValue() default "";
 
     /**
      * 数据表字段备注

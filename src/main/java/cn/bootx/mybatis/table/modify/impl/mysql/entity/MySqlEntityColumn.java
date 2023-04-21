@@ -51,9 +51,6 @@ public class MySqlEntityColumn implements Cloneable {
     /** 字段默认值 */
     private String defaultValue;
 
-    /** 字段默认值是否原生，原生使用$,非原生使用# */
-    private boolean defaultValueNative;
-
     /** 字段的备注 */
     private String comment;
 
@@ -105,9 +102,14 @@ public class MySqlEntityColumn implements Cloneable {
             sb.append(" DEFAULT ").append(getDefaultValue());
         }
 
-        // 自增
-        if (isAutoIncrement()){
+        // 自增 主键才可以使用
+        if (isAutoIncrement()&&isKey()){
             sb.append(" AUTO_INCREMENT");
+        }
+
+        // 备注
+        if (StrUtil.isNotBlank(getComment())){
+            sb.append(" COMMENT '").append(getComment()).append("'");
         }
         // 无符号 待补充
         // 填充零 待补充

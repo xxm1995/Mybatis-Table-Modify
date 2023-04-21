@@ -13,46 +13,10 @@ import lombok.Setter;
 @Setter
 public class MysqlTableColumn {
 
-    /**
-     * 字段名
-     */
-    public static final String COLUMN_NAME_KEY = "column_name";
 
     /**
-     * 默认值
+     * catalog
      */
-    public static final String COLUMN_DEFAULT_KEY = "column_default";
-
-    /**
-     * 是否可为null，值：(YES,NO)
-     */
-    public static final String IS_NULLABLE_KEY = "is_nullable";
-
-    /**
-     * 数据类型
-     */
-    public static final String DATA_TYPE_KEY = "data_type";
-
-    /**
-     * 长度，如果是0的话是null
-     */
-    public static final String NUMERIC_PRECISION_KEY = "numeric_precision";
-
-    /**
-     * 小数点数
-     */
-    public static final String NUMERIC_SCALE_KEY = "numeric_scale";
-
-    /**
-     * 是否为主键，是的话是PRI
-     */
-    public static final String COLUMN_KEY_KEY = "column_key";
-
-    /**
-     * 是否为自动增长，是的话为auto_increment
-     */
-    public static final String EXTRA_KEY = "extra";
-
     private String tableCatalog;
 
     /**
@@ -90,8 +54,14 @@ public class MysqlTableColumn {
      */
     private String dataType;
 
+    /**
+     * 字符最大长度
+     */
     private String characterMaximumLength;
 
+    /**
+     * 字符八进制长度
+     */
     private String characterOctetLength;
 
     /**
@@ -104,8 +74,14 @@ public class MysqlTableColumn {
      */
     private String numericScale;
 
+    /**
+     * 字符集名称
+     */
     private String characterSetName;
 
+    /**
+     * 排序规则名称
+     */
     private String collationName;
 
     /**
@@ -123,8 +99,14 @@ public class MysqlTableColumn {
      */
     private String extra;
 
+    /**
+     * 可以操作的权限
+     */
     private String privileges;
 
+    /**
+     * 行备注
+     */
     private String columnComment;
 
 }

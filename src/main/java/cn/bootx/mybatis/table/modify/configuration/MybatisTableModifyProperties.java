@@ -12,7 +12,7 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
  */
 @Data
 @Accessors(chain = true)
-@ConfigurationProperties(prefix = "mybatis.table")
+@ConfigurationProperties(prefix = "mybatis-table")
 public class MybatisTableModifyProperties {
 
     /**

@@ -22,9 +22,6 @@ import java.util.*;
  */
 public class ColumnUtils {
 
-    /** 默认值 */
-    public static final String DEFAULT_VALUE = "DEFAULT";
-
     /** SQL 转义字符 */
     public static final String SQL_ESCAPE_CHARACTER = "`";
 
@@ -160,11 +157,11 @@ public class ColumnUtils {
     }
 
     /**
-     * 是否是自增
+     * 是否是自增， 主键才可以自增
      */
     public static boolean isAutoIncrement(Field field, Class<?> clazz) {
         DbColumn column = getColumnAnno(field, clazz);
-        if (!hasColumn(field, clazz)) {
+        if (!isKey(field, clazz)) {
             return false;
         }
         return column != null && column.isAutoIncrement();
@@ -200,10 +197,10 @@ public class ColumnUtils {
         if (!hasColumn(field, clazz)) {
             return null;
         }
-        if (column != null && StrUtil.isNotBlank(column.comment())) {
+        if (column != null) {
             return column.comment();
         }
-        return "";
+        return null;
     }
 
     /**
@@ -214,27 +211,10 @@ public class ColumnUtils {
         if (!hasColumn(field, clazz)) {
             return null;
         }
-        if (column != null && !DEFAULT_VALUE.equals(column.defaultValue())) {
+        if (Objects.nonNull(column) && StrUtil.isNotBlank(column.defaultValue())) {
             return column.defaultValue();
         }
         return null;
-    }
-
-    /**
-     * 获取 开启默认值原生模式
-     */
-    public static boolean getDefaultValueNative(Field field, Class<?> clazz) {
-        IsNativeDefValue isNativeDefValue = field.getAnnotation(IsNativeDefValue.class);
-        if (isNativeDefValue != null) {
-            return isNativeDefValue.value();
-        }
-        if (field.getGenericType().toString().equals("class java.lang.String")
-                || field.getGenericType().toString().equals("char")
-                || field.getGenericType().toString().equals("class java.lang.Boolean")
-                || field.getGenericType().toString().equals("boolean")) {
-            return false;
-        }
-        return true;
     }
 
 

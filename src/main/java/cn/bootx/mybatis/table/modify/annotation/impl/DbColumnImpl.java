@@ -54,7 +54,7 @@ public class DbColumnImpl implements DbColumn {
 
     @Override
     public String defaultValue() {
-        return ColumnUtils.DEFAULT_VALUE;
+        return "";
     }
 
     @Override

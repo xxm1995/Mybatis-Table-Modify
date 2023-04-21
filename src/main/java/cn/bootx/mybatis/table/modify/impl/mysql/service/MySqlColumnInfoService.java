@@ -151,80 +151,66 @@ public class MySqlColumnInfoService {
 
     /**
      * 判断字段配置是否一致
-     * @param mysqlTableColumn 表行信息
+     * @param tableColumn 表行信息
      * @param entityColumn 实体配行信息
      * @return 是否需要变动 true 需要更新
      */
-    private boolean compareColumn(MysqlTableColumn mysqlTableColumn, MySqlEntityColumn entityColumn){
+    private boolean compareColumn(MysqlTableColumn tableColumn, MySqlEntityColumn entityColumn){
 
         // 验证类型
-        if (!mysqlTableColumn.getDataType().equalsIgnoreCase(entityColumn.getFieldType())) {
+        if (!tableColumn.getDataType().equalsIgnoreCase(entityColumn.getFieldType())) {
             return false;
         }
         // 验证长度和小数点位数
         String typeAndLength = entityColumn.getFieldType().toLowerCase();
         if (entityColumn.getParamCount() == 1) {
             // 拼接出类型加长度，比如varchar(1)
-            typeAndLength = typeAndLength + "(" + entityColumn.getParamCount() + ")";
+            typeAndLength = typeAndLength + "(" + entityColumn.getLength() + ")";
         }
         else if (entityColumn.getParamCount() == 2) {
             // 拼接出类型加长度，比如varchar(1)
-            typeAndLength = typeAndLength + "(" + entityColumn.getParamCount() + ","
+            typeAndLength = typeAndLength + "(" + entityColumn.getLength() + ","
                     + entityColumn.getDecimalLength() + ")";
         }
 
         // 判断类型+长度是否相同
-        if (!mysqlTableColumn.getColumnType().toLowerCase().equals(typeAndLength)) {
+        if (!tableColumn.getColumnType().toLowerCase().equals(typeAndLength)) {
             return false;
         }
 
         // 验证自增 数据库自增, 实体类不自增
-        if ("auto_increment".equals(mysqlTableColumn.getExtra()) && !entityColumn.isAutoIncrement()) {
+        if ("auto_increment".equals(tableColumn.getExtra()) && !entityColumn.isAutoIncrement()) {
             return false;
         }
         // 验证自增 数据库不自增, 实体类自增
-        if (!"auto_increment".equals(mysqlTableColumn.getExtra()) && entityColumn.isAutoIncrement()) {
+        if (!"auto_increment".equals(tableColumn.getExtra()) && entityColumn.isAutoIncrement()) {
             return false;
         }
-        // 验证默认值控制 TODO 需优化
-        if ( StrUtil.isBlank(mysqlTableColumn.getColumnDefault()) || mysqlTableColumn.getColumnDefault().equals("")) {
-            // 数据库默认值是null，entity中注解设置的默认值不为NULL时，那么需要更新该字段
-            return entityColumn.getDefaultValue() == null
-                    || ColumnUtils.DEFAULT_VALUE.equals(entityColumn.getDefaultValue());
+        // 验证默认值控制是否为空
+        if (StrUtil.isBlank(entityColumn.getDefaultValue()) != StrUtil.isBlank(tableColumn.getColumnDefault())) {
+            return false;
         }
-        // 验证默认值 TODO 需优化
-        if (MySqlFieldTypeEnum.BIT.toString().toLowerCase().equals(entityColumn.getFieldType())
-                && !entityColumn.isDefaultValueNative()) {
-            if (("true".equals(entityColumn.getDefaultValue())
-                    || "1".equals(entityColumn.getDefaultValue()))
-                    && !"b'1'".equals(mysqlTableColumn.getColumnDefault())) {
-                // 两者不相等时，需要更新该字段
-                return false;
-            }
-            if (("false".equals(entityColumn.getDefaultValue())
-                    || "0".equals(entityColumn.getDefaultValue()))
-                    && !"b'0'".equals(mysqlTableColumn.getColumnDefault())) {
-                // 两者不相等时，需要更新该字段
+        // entityColumn默认值需要去除两侧单引号,然后比对默认值是否一致
+        if (StrUtil.isNotBlank(entityColumn.getDefaultValue())){
+            String entityDefaultValue = StrUtil.trim(entityColumn.getDefaultValue(), 0, character -> character.toString().equals("'"));
+            if (!Objects.equals(entityDefaultValue,tableColumn.getColumnDefault())){
                 return false;
             }
         }
-        else {
-            return false;
-        }
-        // 验证是否可以为null 数据库自增, 实体类不自增
-        if (mysqlTableColumn.getIsNullable().equals("NO") && !entityColumn.isKey()) {
+        // 验证是否可以为null
+        if (tableColumn.getIsNullable().equals("NO") && !entityColumn.isKey()) {
             if (entityColumn.isFieldIsNull()) {
                 return false;
             }
         }
         // 验证是否可以为null
-        else if (mysqlTableColumn.getIsNullable().equals("YES") && !entityColumn.isKey()) {
+        else if (tableColumn.getIsNullable().equals("YES") && !entityColumn.isKey()) {
             if (!entityColumn.isFieldIsNull()) {
                 return false;
             }
         }
         // 8.验证注释
-        if (!Objects.equals(mysqlTableColumn.getColumnComment(),entityColumn.getComment())) {
+        if (!Objects.equals(tableColumn.getColumnComment(),entityColumn.getComment())) {
             return false;
         }
 

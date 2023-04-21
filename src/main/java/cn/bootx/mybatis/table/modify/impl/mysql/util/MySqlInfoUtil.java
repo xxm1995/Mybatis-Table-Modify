@@ -48,7 +48,6 @@ public class MySqlInfoUtil {
                         .setKey(ColumnUtils.isKey(field, clas))
                         .setAutoIncrement(ColumnUtils.isAutoIncrement(field, clas))
                         .setDefaultValue(ColumnUtils.getDefaultValue(field, clas))
-                        .setDefaultValueNative(ColumnUtils.getDefaultValueNative(field, clas))
                         .setComment(ColumnUtils.getComment(field, clas));
                 // 长度需要配置
                 entityColumn.setLength(mySqlTypeAndLength.getLength());

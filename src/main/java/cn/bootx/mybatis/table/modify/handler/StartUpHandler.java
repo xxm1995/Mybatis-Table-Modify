@@ -7,6 +7,7 @@ import cn.bootx.mybatis.table.modify.constants.DatabaseType;
 import cn.bootx.mybatis.table.modify.constants.UpdateType;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
@@ -19,6 +20,7 @@ import java.util.Objects;
  *
  */
 @Slf4j
+@Order()
 @Component
 @RequiredArgsConstructor
 public class StartUpHandler {
@@ -30,7 +32,7 @@ public class StartUpHandler {
     /**
      * 建表开始
      */
-    @PostConstruct
+//    @PostConstruct
     public void startHandler() {
         // 获取配置信息
         DatabaseType databaseType = mybatisTableModifyProperties.getDatabaseType();

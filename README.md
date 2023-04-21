@@ -13,3 +13,14 @@
   - 提供接入其他类型数据库的插件机制
 - 1.6.x 目标：
   - 支持非Spring中间件的项目接入
+
+## 使用说明
+添加pom依赖
+```xml
+    <dependency>
+        <groupId>cn.bootxe</groupId>
+        <artifactId>mybatis-table-modify</artifactId>
+        <version>1.5.1.RELEASE</version>
+    </dependency>
+```
+配置要建表的路径
