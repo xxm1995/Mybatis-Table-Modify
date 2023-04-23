@@ -1,7 +1,7 @@
 # Mybatis-Table-Modify
 
-本项目Fork自 [A.C.Table](https://gitee.com/sunchenbin/mybatis-enhance)，因为该开源项目长期未有更新，而且目前项目中也用到了这个项目并进行了改造，
-所以打算继续根据原有的功能进行继续完善下去。
+本项目Fork自 [A.C.Table](https://gitee.com/sunchenbin/mybatis-enhance)，因为该开源项目长期未更新，并且我在其他项目中也用到了A.C.Table，
+不过是以源码的方式进行的引入，并对功能进行了改造，所以打算把这些功能给开源出来，同时继续将这个项目完善下去。
 
 ## 路线图
 - 1.5.1 主要目标：调整项目结构，去除除表维护相关的其他功能，代码暂时只适配Spring Boot项目
@@ -34,3 +34,22 @@ mybatis-table:
   scan-package: cn.bootx.**.entity
 ```
 ### 在类上配置
+
+## 支持完善度
+### 数据库类型
+- [x] MySQL
+- [ ] Oracle
+
+### 表设计功能
+- 表信息
+  - [x] 名称 
+  - [x] 备注
+  - [x] 引擎
+  - [x] 字符集
+- 字段
+  - [x] 名称
+  - [x] 长度
+  - [x] 默认值
+  - [x] 自增
+  - [x] 主键/多主键
+  - 
