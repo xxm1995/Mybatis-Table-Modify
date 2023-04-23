@@ -3,11 +3,11 @@ package cn.bootx.mybatis.table.modify.utils;
 import cn.bootx.mybatis.table.modify.annotation.*;
 import cn.bootx.mybatis.table.modify.annotation.impl.DbColumnImpl;
 import cn.bootx.mybatis.table.modify.constants.TableCharset;
+import cn.hutool.core.text.NamingCase;
 import cn.hutool.core.util.StrUtil;
 import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
-import com.google.common.base.CaseFormat;
 import org.apache.commons.lang3.time.DateFormatUtils;
 
 import java.lang.reflect.Field;
@@ -131,7 +131,8 @@ public class ColumnUtils {
      * 获取构建小写表名称
      */
     private static String getBuildLowerName(String name) {
-        return CaseFormat.LOWER_CAMEL.to(CaseFormat.LOWER_UNDERSCORE, name).toLowerCase();
+        return NamingCase.toUnderlineCase(name);
+//        return CaseFormat.LOWER_CAMEL.to(CaseFormat.LOWER_UNDERSCORE, name).toLowerCase();
     }
 
     /**
@@ -153,7 +154,7 @@ public class ColumnUtils {
         if (Objects.nonNull(tableId)){
             return true;
         }
-            return false;
+        return false;
     }
 
     /**
@@ -244,8 +245,11 @@ public class ColumnUtils {
         DbColumn column = field.getAnnotation(DbColumn.class);
         TableField tableField = field.getAnnotation(TableField.class);
         TableId tableId = field.getAnnotation(TableId.class);
+        DbColumnIgnore ignore = field.getAnnotation(DbColumnIgnore.class);
+
         // 判断是否忽略该字段
-        if (column != null && column.ignore()) {
+        if (Objects.nonNull(ignore)
+                ||(column != null && column.ignore())) {
             return false;
         }
         // 开启了simple模式

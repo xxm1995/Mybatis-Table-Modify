@@ -15,7 +15,7 @@
   - 支持非Spring中间件的项目接入
 
 ## 使用说明
-添加pom依赖
+### 添加pom依赖
 ```xml
     <dependency>
         <groupId>cn.bootxe</groupId>
@@ -23,4 +23,14 @@
         <version>1.5.1.RELEASE</version>
     </dependency>
 ```
-配置要建表的路径
+### 配置要建表的路径
+```yaml
+mybatis-table:
+  # 数据库类型
+  database-type: mysql
+  # 更新类型
+  update-type: create
+  # 扫描包路径, 可以用 ,和 ; 分隔
+  scan-package: cn.bootx.**.entity
+```
+### 在类上配置

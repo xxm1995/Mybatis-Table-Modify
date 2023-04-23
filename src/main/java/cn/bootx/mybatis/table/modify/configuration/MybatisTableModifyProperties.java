@@ -30,14 +30,4 @@ public class MybatisTableModifyProperties {
      */
     private String scanPackage;
 
-    /**
-     * 指定生成索引前缀
-     */
-    private String prefixIndex = "actable_idx_";
-
-    /**
-     * 指定生成唯一约束前缀
-     */
-    private String prefixUnique = "actable_uni_";
-
 }

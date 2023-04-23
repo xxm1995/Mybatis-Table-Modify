@@ -42,7 +42,7 @@ public @interface DbTable {
     boolean isSimple() default true;
 
     /**
-     * 需要排除的属性名，排除掉的属性不参与建表
+     * 需要排除的属性名，排除掉的属性不参与建表, 也可以在字段上配置忽略该行注解
      */
     String[] excludeFields() default { "serialVersionUID" };
 

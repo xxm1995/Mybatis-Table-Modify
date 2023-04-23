@@ -2,41 +2,36 @@
 
     <groupId>cn.bootx</groupId>
     <artifactId>mybatis-table-modify</artifactId>
-    <version>1.5.1.RELEASE</version>
+    <version>1.5.1.beta1</version>
     <modelVersion>4.0.0</modelVersion>
 
-    <parent>
-        <groupId>org.sonatype.oss</groupId>
-        <artifactId>oss-parent</artifactId>
-        <version>7</version>
-    </parent>
-
-    <name>com.gitee.sunchenbin.mybatis.actable:mybatis-enhance-actable</name>
-    <description>mybatis-table-modify is a Maven project based on Spring and Mybatis, which enhances the function of Mybatis</description>
+    <name>mybatis-table-modify</name>
+    <description>mybatis-table-modify 是一个基于 Spring 和 Mybatis 的项目，它可以通过给实体类上标注注解来生成和维护数据库表结构信息</description>
     <url>https://gitee.com/bootx/mybatis-table-modify</url>
 
+    <!-- 许可证 -->
     <licenses>
         <license>
             <name>The Apache Software License, Version 2.0</name>
             <url>http://www.apache.org/licenses/LICENSE-2.0.txt</url>
-            <distribution>mybatis-table-modify</distribution>
+            <distribution>repo</distribution>
         </license>
     </licenses>
 
+    <!-- 开发者信息 -->
     <developers>
         <developer>
             <name>bootx</name>
             <email>xxm1995@outlook.com</email>
             <organization>bootx</organization>
-            <url>https://gitee.com/bootx/sunchenbin/mybatis-enhance</url>
+            <url>https://gitee.com/bootx/mybatis-table-modify</url>
         </developer>
     </developers>
 
     <scm>
-        <connection>scm:git:git@gitee.com:sunchenbin/mybatis-enhance.git</connection>
-        <developerConnection>scm:git:git@gitee.com:sunchenbin/mybatis-enhance.git</developerConnection>
-        <url>https://gitee.com/sunchenbin/mybatis-enhance</url>
-        <tag>1.0</tag>
+        <connection>scm:git:git@gitee.com:bootx/mybatis-table-modify.git</connection>
+        <developerConnection>scm:git:git@gitee.com:bootx/mybatis-table-modify.git</developerConnection>
+        <url>https://gitee.com/bootx/mybatis-table-modify</url>
     </scm>
 
     <properties>
@@ -50,7 +45,7 @@
 
     <dependencies>
 
-        <!-- spring -->
+        <!-- spring boot自动配置 -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-autoconfigure</artifactId>
@@ -58,6 +53,7 @@
             <scope>provided</scope>
         </dependency>
 
+        <!-- spring boot配置处理器 -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-configuration-processor</artifactId>
@@ -65,6 +61,7 @@
             <scope>provided</scope>
         </dependency>
 
+        <!-- 事务 -->
         <dependency>
             <groupId>org.springframework</groupId>
             <artifactId>spring-tx</artifactId>
@@ -72,6 +69,7 @@
             <scope>provided</scope>
         </dependency>
 
+        <!-- 日志 -->
         <dependency>
             <groupId>org.slf4j</groupId>
             <artifactId>slf4j-api</artifactId>
@@ -86,6 +84,7 @@
             <scope>provided</scope>
         </dependency>
 
+        <!-- lombok -->
         <dependency>
             <groupId>org.projectlombok</groupId>
             <artifactId>lombok</artifactId>
@@ -93,18 +92,14 @@
             <scope>provided</scope>
         </dependency>
 
-        <dependency>
-            <groupId>com.google.guava</groupId>
-            <artifactId>guava</artifactId>
-            <version>31.1-jre</version>
-        </dependency>
-
+        <!-- hutool工具类 -->
         <dependency>
             <groupId>cn.hutool</groupId>
             <artifactId>hutool-all</artifactId>
             <version>${hutool.version}</version>
         </dependency>
 
+        <!-- java原生持久化注解 -->
         <dependency>
             <groupId>javax.persistence</groupId>
             <artifactId>persistence-api</artifactId>
@@ -112,13 +107,7 @@
             <scope>provided</scope>
         </dependency>
 
-<!--        <dependency>-->
-<!--            <groupId>com.baomidou</groupId>-->
-<!--            <artifactId>mybatis-plus-annotation</artifactId>-->
-<!--            <version>${mybatis-plus.version}</version>-->
-<!--            <scope>provided</scope>-->
-<!--        </dependency>-->
-
+        <!-- mybatis 依赖 -->
         <dependency>
             <groupId>org.mybatis</groupId>
             <artifactId>mybatis-spring</artifactId>
@@ -126,109 +115,16 @@
             <scope>provided</scope>
         </dependency>
 
+        <!-- Mybatis-plus注解包 -->
         <dependency>
             <groupId>com.baomidou</groupId>
             <artifactId>mybatis-plus-annotation</artifactId>
-            <version>3.5.3.1</version>
+            <version>${mybatis-plus.version}</version>
         </dependency>
     </dependencies>
 
     <build>
-        <resources>
-            <resource>
-                <directory>src/main/java</directory>
-                <includes>
-                    <include>**/*.properties</include>
-                    <include>**/*.xml</include>
-                </includes>
-                <filtering>false</filtering>
-            </resource>
-            <resource>
-                <directory>src/main/resources</directory>
-                <includes>
-                    <include>**/*</include>
-                </includes>
-                <filtering>true</filtering>
-            </resource>
-        </resources>
         <plugins>
-            <plugin>
-                <!-- Source -->
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-source-plugin</artifactId>
-                <version>2.2.1</version>
-                <executions>
-                    <execution>
-                        <id>attach-sources</id>
-                        <phase>package</phase>
-                        <goals>
-                            <goal>jar-no-fork</goal>
-                        </goals>
-                    </execution>
-                </executions>
-            </plugin>
-
-            <!-- JavaDoc -->
-<!--            <plugin>-->
-<!--                <groupId>org.apache.maven.plugins</groupId>-->
-<!--                <artifactId>maven-javadoc-plugin</artifactId>-->
-<!--                <version>2.9.1</version>-->
-<!--                <configuration>-->
-<!--                    <charset>UTF-8</charset>-->
-<!--                    <encoding>UTF-8</encoding>-->
-<!--                </configuration>-->
-<!--                <executions>-->
-<!--                    <execution>-->
-<!--                        <id>attach-javadocs</id>-->
-<!--                        <phase>package</phase>-->
-<!--                        <goals>-->
-<!--                            <goal>jar</goal>-->
-<!--                        </goals>-->
-<!--                    </execution>-->
-<!--                </executions>-->
-<!--            </plugin>-->
-
-            <!-- GPG -->
-            <!-- <plugin>
-              <groupId>org.apache.maven.plugins</groupId>
-              <artifactId>maven-gpg-plugin</artifactId>
-              <version>1.5</version>
-              <executions>
-                <execution>
-                  <id>sign-artifacts</id>
-                  <phase>verify</phase>
-                  <goals>
-                    <goal>sign</goal>
-                  </goals>
-                </execution>
-              </executions>
-            </plugin> -->
-
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-compiler-plugin</artifactId>
-                <version>3.0</version>
-                <configuration>
-                    <source>${java.version}</source>
-                    <target>${java.version}</target>
-                    <fork>true</fork>
-                    <verbose>true</verbose>
-                    <encoding>UTF-8</encoding>
-                    <showWarnings>true</showWarnings>
-                </configuration>
-            </plugin>
-
-            <!-- JNA -->
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-surefire-plugin</artifactId>
-                <configuration>
-                    <environmentVariables>
-                        <LD_LIBRARY_PATH>/usr/local/lib</LD_LIBRARY_PATH>
-                    </environmentVariables>
-                </configuration>
-            </plugin>
-
             <!--代码格式插件，默认使用spring 规则-->
             <plugin>
                 <groupId>io.spring.javaformat</groupId>
@@ -236,27 +132,98 @@
                 <version>${spring.checkstyle.version}</version>
             </plugin>
 
+            <!-- 编译插件，设置源码以及编译的jdk版本 -->
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-release-plugin</artifactId>
-                <version>2.5.1</version>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <version>3.1</version>
+                <configuration>
+                    <source>${java.version}</source>
+                    <target>${java.version}</target>
+                </configuration>
+            </plugin>
+            <!--打包源码的插件-->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-source-plugin</artifactId>
+                <version>3.2.1</version>
+                <executions>
+                    <execution>
+                        <id>attach-sources</id>
+                        <goals>
+                            <goal>jar-no-fork</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+            <!-- Javadoc 文档生成插件-->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-javadoc-plugin</artifactId>
+                <version>2.9.1</version>
+                <configuration>
+                    <!-- 忽略生成文档中的错误 -->
+                    <additionalparam>-Xdoclint:none</additionalparam>
+                    <aggregate>true</aggregate>
+                    <!-- utf-8读取文件 -->
+                    <charset>UTF-8</charset>
+                    <!-- utf-8进行编码代码 -->
+                    <encoding>UTF-8</encoding>
+                    <!-- utf-8进行编码文档 -->
+                    <docencoding>UTF-8</docencoding>
+                </configuration>
+                <executions>
+                    <execution>
+                        <id>attach-javadocs</id>
+                        <goals>
+                            <goal>jar</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+            <!--公钥私钥插件，也就是上传需要进行验证用户名和密码过程中需要用到的插件-->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-gpg-plugin</artifactId>
+                <version>1.6</version>
+                <executions>
+                    <execution>
+                        <id>sign-artifacts</id>
+                        <phase>verify</phase>
+                        <goals>
+                            <goal>sign</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+            <!--部署插件-->
+            <plugin>
+                <groupId>org.sonatype.plugins</groupId>
+                <artifactId>nexus-staging-maven-plugin</artifactId>
+                <version>1.6.7</version>
+                <extensions>true</extensions>
+                <configuration>
+                    <!-- setting.xml中配置仓库平台id -->
+                    <serverId>sonatype</serverId>
+                    <!-- 仓库平台地址 -->
+                    <nexusUrl>https://s01.oss.sonatype.org/</nexusUrl>
+                    <!-- 自动完成在平台上close、release的操作 -->
+                    <autoReleaseAfterClose>false</autoReleaseAfterClose>
+                </configuration>
             </plugin>
         </plugins>
     </build>
 
     <distributionManagement>
         <snapshotRepository>
-            <!-- 这个id需要在setting.xml中设置  -->
-            <id>oss</id>
+            <id>sonatype</id>
             <name>OSS Snapshots Repository</name>
-            <!-- 这里的url就是Issue中回复的snapshots 的repo地址-->
-            <url>https://oss.sonatype.org/content/repositories/snapshots/</url>
+            <url>https://s01.oss.sonatype.org/content/repositories/snapshots/</url>
         </snapshotRepository>
         <repository>
-            <id>oss</id>
+            <id>sonatype</id>
             <name>OSS Staging Repository</name>
-            <!-- 这里的url就是Issue中回复的staging 的repo地址-->
-            <url>https://oss.sonatype.org/service/local/staging/deploy/maven2/</url>
+            <url>https://s01.oss.sonatype.org/service/local/staging/deploy/maven2/</url>
         </repository>
     </distributionManagement>
 
