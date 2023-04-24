@@ -3,12 +3,12 @@ package cn.bootx.mybatis.table.modify.utils;
 import cn.bootx.mybatis.table.modify.annotation.*;
 import cn.bootx.mybatis.table.modify.annotation.impl.DbColumnImpl;
 import cn.bootx.mybatis.table.modify.constants.TableCharset;
+import cn.hutool.core.date.DateUtil;
 import cn.hutool.core.text.NamingCase;
 import cn.hutool.core.util.StrUtil;
 import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
-import org.apache.commons.lang3.time.DateFormatUtils;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
@@ -313,7 +313,7 @@ public class ColumnUtils {
     public static String appendTimeSuffix(String tableName, String pattern) {
         String suffix;
         try {
-            suffix = DateFormatUtils.format(new Date(), pattern);
+            suffix = DateUtil.format(new Date(), pattern);
         }
         catch (Exception e) {
             throw new RuntimeException("无法转换时间格式" + pattern);
