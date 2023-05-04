@@ -34,8 +34,12 @@ public class MySqlCreateTableService {
         // 做创建表操作
         for (MySqlEntityTable table : modifyMap.getCreateTables()) {
             log.info("开始创建表：" + table.getName());
-            mysqlTableModifyMapper.createTable(this.buildCreateParam(table,modifyMap));
-            log.info("完成创建表：" + table.getName());
+            try {
+                mysqlTableModifyMapper.createTable(this.buildCreateParam(table,modifyMap));
+                log.info("完成创建表：" + table.getName());
+            } catch (Exception e){
+                log.error("创建表失败：" + table.getName(),e);
+            }
         }
     }
 

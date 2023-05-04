@@ -37,8 +37,12 @@ public class MySqlModifyTableService {
             MySqlModifyParam mySqlModifyParam = this.buildUpdateParam(table, baseTableMap);
             if (mySqlModifyParam.isUpdate()) {
                 log.info("开始更新表：" + table.getName());
-                mysqlTableModifyMapper.modifyTable(mySqlModifyParam);
-                log.info("完成更新表：" + table.getName());
+                try {
+                    mysqlTableModifyMapper.modifyTable(mySqlModifyParam);
+                    log.info("完成更新表：" + table.getName());
+                } catch (Exception e){
+                    log.error("更新表失败：" + table.getName(),e);
+                }
             }
         }
     }

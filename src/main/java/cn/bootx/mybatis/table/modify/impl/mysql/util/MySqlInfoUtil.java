@@ -102,10 +102,10 @@ public class MySqlInfoUtil {
      */
     private MySqlTypeAndLength getTypeAndLength(Field field, Class<?> clazz) {
         if (!ColumnUtils.hasColumn(field, clazz)) {
-            throw new RuntimeException("字段名：" + field.getName() + "没有字段标识的注解，异常抛出！");
+            throw new RuntimeException(clazz.getName()+" 中的字段名：" + field.getName() + "没有字段标识的注解，异常抛出！");
         }
         // 根据字段注解获取类型和长度配置
-        MySqlFieldType mySqlFieldType = clazz.getAnnotation(MySqlFieldType.class);
+        MySqlFieldType mySqlFieldType = field.getAnnotation(MySqlFieldType.class);
         MySqlTypeAndLength typeAndLength;
         if (Objects.isNull(mySqlFieldType)){
             typeAndLength = MySql4JavaType.getTypeAndLength(field.getGenericType().toString());
@@ -114,7 +114,7 @@ public class MySqlInfoUtil {
         }
 
         if (Objects.isNull(typeAndLength)) {
-            throw new RuntimeException("字段名：" + field.getName() + "不支持" + field.getGenericType()
+            throw new RuntimeException(clazz.getName()+" 字段名：" + field.getName() + "不支持" + field.getGenericType()
                     + "类型转换到mysql类型，仅支持JavaToMysqlType类中的类型默认转换，异常抛出！");
         }
 
