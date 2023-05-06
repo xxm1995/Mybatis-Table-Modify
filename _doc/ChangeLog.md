@@ -1,5 +1,7 @@
 # 1.5.1.beta
-- fix: 获取MySqlFieldType错误- fix: 打包时未把mapper导入jar中- 优化: 创建或更新表失败时应用修改为报错，不影响系统正常启动
+- fix: 获取MySqlFieldType错误
+- fix: 打包时未把mapper导入jar中
+- 优化: 创建或更新表失败时应用修改为报错，不影响系统正常启动
 # 1.5.1
 - 支持字段排序，创建时有效，更新时不生效
 - 支持Spring Boot3环境

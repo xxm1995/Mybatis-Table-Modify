@@ -23,6 +23,7 @@
   - 支持非Spring中间件的项目接入
 
 ## 使用说明
+> 推荐只在开发时使用，生产环境
 ### 添加pom依赖
 ```xml
     <dependency>
@@ -33,8 +34,6 @@
 ```
 [最新版本](https://mvnrepository.com/artifact/cn.bootx/mybatis-table-modify)
 ### 配置要建表的路径
-> 无论是使用MyBatis还是MyBatis Plus，需要保证项目中的`mapper`被扫描到，否则会报错无法启动，项目中`mapper`文件所在的路径为
-> `classpath*:cn/bootx/mybatis/table/modify/impl/*/mapper/*TableModifyMapper.xml`
 ```yaml
 mybatis-table:
   # 数据库类型
@@ -44,6 +43,23 @@ mybatis-table:
   # 扫描包路径, 可以用 ,和 ; 分隔
   scan-package: cn.bootx.**.entity
 ```
+### 其他配置
+> 无论是使用MyBatis还是MyBatis Plus，需要保证项目中的`mapper`被扫描到，否则会报错无法启动，
+>
+> 项目中`mapper`文件所在的路径为 `classpath*:cn/bootx/mybatis/table/modify/impl/*/mapper/*TableModifyMapper.xml`
+
+#### MyBatis配置扫描
+```yaml
+mybatis:
+  mapper-locations: classpath*:mapper/**/*Mapper.xml
+```
+#### MyBatis Plus配置扫描
+```yaml
+# mp配置
+mybatis-plus:
+  mapper-locations: classpath*:mapper/**/*Mapper.xml
+```
+
 
 ## 🛠️核心注解
 > 不同的数据库各自会有一些专属的注解，通常适用于对应类型数据库专有的配置，如MySQL专有的`MySqlEngine(存储引擎)`、`MySqlFieldType(字段类型)`等
@@ -85,12 +101,6 @@ mybatis-table:
 - Bpm-Plus 工作流开发平台
 
 ##  🥪 关于我们
-
-微信扫码加入交流群，或添加微信号：`xxxx` 邀请进群
-
-
-钉钉扫码加入钉钉交流群
-
 
 QQ扫码加入QQ交流群
 <p>
