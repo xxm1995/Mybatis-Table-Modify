@@ -2,7 +2,7 @@
 
     <groupId>cn.bootx</groupId>
     <artifactId>mybatis-table-modify</artifactId>
-    <version>1.5.1.beta3</version>
+    <version>1.5.1.beta4</version>
     <modelVersion>4.0.0</modelVersion>
 
     <name>mybatis-table-modify</name>
@@ -39,7 +39,7 @@
         <spring-boot.version>2.7.10</spring-boot.version>
         <spring.checkstyle.version>0.0.38</spring.checkstyle.version>
         <mybatis-plus.version>3.5.3.1</mybatis-plus.version>
-        <hutool.version>5.8.15</hutool.version>
+        <hutool.version>5.8.18</hutool.version>
         <java.version>1.8</java.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
@@ -91,7 +91,7 @@
         <!-- hutool工具类 -->
         <dependency>
             <groupId>cn.hutool</groupId>
-            <artifactId>hutool-all</artifactId>
+            <artifactId>hutool-core</artifactId>
             <version>${hutool.version}</version>
         </dependency>
 
@@ -211,8 +211,8 @@
                     <serverId>sonatype</serverId>
                     <!-- 仓库平台地址 -->
                     <nexusUrl>https://s01.oss.sonatype.org/</nexusUrl>
-                    <!-- 自动完成在平台上close、release的操作 -->
-<!--                    <autoReleaseAfterClose>false</autoReleaseAfterClose>-->
+                    <!-- 自动完成在平台上close后的release的操作 -->
+                    <autoReleaseAfterClose>false</autoReleaseAfterClose>
                 </configuration>
             </plugin>
         </plugins>

@@ -2,7 +2,7 @@
 
 <p>
  <img src='https://gitee.com/bootx/mybatis-table-modify/badge/star.svg?theme=dark' alt='star'/>
- <img src="https://img.shields.io/badge/mybatis table modify-1.5.1.beta3-success.svg" alt="Build Status"/>
+ <img src="https://img.shields.io/badge/mybatis table modify-1.5.1.beta4-success.svg" alt="Build Status"/>
 <img src="https://img.shields.io/badge/Author-Bootx-orange.svg" alt="Build Status"/>
  <img src="https://img.shields.io/badge/license-Apache%20License%202.0-green.svg"/>
 </p>
