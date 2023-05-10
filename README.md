@@ -27,7 +27,7 @@
 ### 添加pom依赖
 ```xml
     <dependency>
-        <groupId>cn.bootxe</groupId>
+        <groupId>cn.bootx</groupId>
         <artifactId>mybatis-table-modify</artifactId>
         <version>${latest.version}</version>
     </dependency>
@@ -94,11 +94,11 @@ mybatis-plus:
 | ignore          | boolean        | false     | 是否排除该字段, 默认不排除                             |
 
 ##  🥂 Bootx 项目合集
-- Bootx-Platform 单体版脚手架
-- Bootx-Cloud 微服务版脚手架
-- Dax-Pay 支付开发平台
-- Mybatis-Table-Modify 数据库表结构管理
-- Bpm-Plus 工作流开发平台
+- Bootx-Platform：单体版脚手架 [Gitee地址](https://gitee.com/bootx/bootx-platform)
+- Bootx-Cloud：微服务版脚手架 [Gitee地址](https://gitee.com/bootx/bootx-cloud)
+- dax-pay：开源支付系统 [Gitee地址](https://gitee.com/bootx/dax-pay)
+- bpm-plus：开源支付系统 [Gitee地址](https://gitee.com/bootx/bpm-plus)
+- mybatis-table-modify：数据表结构管理 [Gitee地址](https://gitee.com/bootx/mybatis-table-modify)
 
 ##  🥪 关于我们
 
