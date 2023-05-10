@@ -2,7 +2,7 @@
 
     <groupId>cn.bootx</groupId>
     <artifactId>mybatis-table-modify</artifactId>
-    <version>1.5.1.beta4</version>
+    <version>1.5.1.rc1</version>
     <modelVersion>4.0.0</modelVersion>
 
     <name>mybatis-table-modify</name>
