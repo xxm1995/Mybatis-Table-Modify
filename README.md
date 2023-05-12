@@ -2,7 +2,7 @@
 
 <p>
  <img src='https://gitee.com/bootx/mybatis-table-modify/badge/star.svg?theme=dark' alt='star'/>
- <img src="https://img.shields.io/badge/mybatis table modify-1.5.1.beta4-success.svg" alt="Build Status"/>
+ <img src="https://img.shields.io/badge/mybatis table modify-1.5.2-success.svg" alt="Build Status"/>
 <img src="https://img.shields.io/badge/Author-Bootx-orange.svg" alt="Build Status"/>
  <img src="https://img.shields.io/badge/license-Apache%20License%202.0-green.svg"/>
 </p>
@@ -97,7 +97,7 @@ mybatis-plus:
 - Bootx-Platform：单体版脚手架 [Gitee地址](https://gitee.com/bootx/bootx-platform)
 - Bootx-Cloud：微服务版脚手架 [Gitee地址](https://gitee.com/bootx/bootx-cloud)
 - dax-pay：开源支付系统 [Gitee地址](https://gitee.com/bootx/dax-pay)
-- bpm-plus：开源支付系统 [Gitee地址](https://gitee.com/bootx/bpm-plus)
+- bpm-plus：协同办公系统 [Gitee地址](https://gitee.com/bootx/bpm-plus)
 - mybatis-table-modify：数据表结构管理 [Gitee地址](https://gitee.com/bootx/mybatis-table-modify)
 
 ##  🥪 关于我们
