@@ -3,6 +3,8 @@
     <groupId>cn.bootx</groupId>
     <artifactId>mybatis-table-modify</artifactId>
     <version>1.5.2</version>
+
+    <packaging>pom</packaging>
     <modelVersion>4.0.0</modelVersion>
 
     <name>mybatis-table-modify</name>
@@ -34,97 +36,49 @@
         <url>https://gitee.com/bootx/mybatis-table-modify</url>
     </scm>
 
+    <modules>
+        <module>mybatis-table-modify-core</module>
+        <module>mybatis-table-modify-mysql</module>
+        <module>mybatis-table-modify-mysql-boot-starter</module>
+    </modules>
+
     <properties>
-        <spring.version>5.3.26</spring.version>
-        <spring-boot.version>2.7.10</spring-boot.version>
-        <spring.checkstyle.version>0.0.38</spring.checkstyle.version>
-        <mybatis-plus.version>3.5.3.1</mybatis-plus.version>
-        <hutool.version>5.8.18</hutool.version>
         <java.version>1.8</java.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
+
+        <mybatis-table-modify.version>1.5.2</mybatis-table-modify.version>
+
+        <spring.version>5.3.26</spring.version>
+        <spring-boot.version>2.7.10</spring-boot.version>
+        <spring.checkstyle.version>0.0.38</spring.checkstyle.version>
+        <slf4j.version>1.7.12</slf4j.version>
+        <lombok.version>1.18.26</lombok.version>
+        <hutool.version>5.8.18</hutool.version>
+        <persistence.version>1.0.2</persistence.version>
+        <mybatis-plus.version>3.5.3.1</mybatis-plus.version>
+        <mybatis-spring.version>2.0.7</mybatis-spring.version>
+        <mybatis.version>3.5.11</mybatis.version>
     </properties>
 
     <dependencies>
-
-        <!-- spring boot自动配置 -->
-        <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-autoconfigure</artifactId>
-            <version>${spring-boot.version}</version>
-            <scope>provided</scope>
-        </dependency>
-
-        <!-- spring boot配置处理器 -->
-        <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-configuration-processor</artifactId>
-            <version>${spring-boot.version}</version>
-            <scope>provided</scope>
-        </dependency>
-
-        <!-- 事务 -->
-        <dependency>
-            <groupId>org.springframework</groupId>
-            <artifactId>spring-tx</artifactId>
-            <version>${spring.version}</version>
-            <scope>provided</scope>
-        </dependency>
 
         <!-- 日志 -->
         <dependency>
             <groupId>org.slf4j</groupId>
             <artifactId>slf4j-api</artifactId>
-            <version>1.7.12</version>
+            <version>${slf4j.version}</version>
             <scope>provided</scope>
         </dependency>
-
 
         <!-- lombok -->
         <dependency>
             <groupId>org.projectlombok</groupId>
             <artifactId>lombok</artifactId>
-            <version>1.18.26</version>
+            <version>${lombok.version}</version>
             <scope>provided</scope>
         </dependency>
 
-        <!-- hutool工具类 -->
-        <dependency>
-            <groupId>cn.hutool</groupId>
-            <artifactId>hutool-core</artifactId>
-            <version>${hutool.version}</version>
-        </dependency>
-
-        <!-- java原生持久化注解 -->
-        <dependency>
-            <groupId>javax.persistence</groupId>
-            <artifactId>persistence-api</artifactId>
-            <version>1.0.2</version>
-            <scope>provided</scope>
-        </dependency>
-
-        <!-- mybatis 依赖 -->
-        <dependency>
-            <groupId>org.mybatis</groupId>
-            <artifactId>mybatis-spring</artifactId>
-            <version>2.0.7</version>
-            <scope>provided</scope>
-        </dependency>
-
-        <!-- mybatis 依赖 -->
-        <dependency>
-            <groupId>org.mybatis</groupId>
-            <artifactId>mybatis</artifactId>
-            <version>3.5.11</version>
-            <scope>provided</scope>
-        </dependency>
-
-        <!-- Mybatis-plus注解包 -->
-        <dependency>
-            <groupId>com.baomidou</groupId>
-            <artifactId>mybatis-plus-annotation</artifactId>
-            <version>${mybatis-plus.version}</version>
-        </dependency>
     </dependencies>
 
     <build>
