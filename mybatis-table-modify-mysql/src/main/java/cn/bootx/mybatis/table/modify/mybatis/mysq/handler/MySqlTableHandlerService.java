@@ -1,10 +1,10 @@
 package cn.bootx.mybatis.table.modify.mybatis.mysq.handler;
 
 import cn.bootx.mybatis.table.modify.annotation.DbTable;
-import cn.bootx.mybatis.table.modify.handler.TableHandlerService;
 import cn.bootx.mybatis.table.modify.mybatis.mysq.mapper.MySqlTableModifyMapper;
 import cn.bootx.mybatis.table.modify.mybatis.mysq.entity.MySqlModifyMap;
 import cn.bootx.mybatis.table.modify.mybatis.mysq.service.*;
+import cn.bootx.mybatis.table.modify.properties.MybatisTableModifyProperties;
 import cn.bootx.mybatis.table.modify.utils.ClassScanner;
 import cn.bootx.mybatis.table.modify.utils.ColumnUtils;
 import cn.bootx.mybatis.table.modify.constants.DatabaseType;
@@ -12,6 +12,7 @@ import cn.bootx.mybatis.table.modify.constants.UpdateType;
 import com.baomidou.mybatisplus.annotation.TableName;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.stereotype.Component;
 
 import java.util.*;
 
@@ -20,6 +21,7 @@ import java.util.*;
  * @version 2016年6月23日 下午6:07:21
  */
 @Slf4j
+@Component
 @RequiredArgsConstructor
 public class MySqlTableHandlerService {
 

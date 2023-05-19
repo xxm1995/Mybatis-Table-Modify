@@ -3,7 +3,6 @@ package cn.bootx.mybatis.table.modify.mybatis.mysq.service;
 import cn.bootx.mybatis.table.modify.constants.TableCharset;
 import cn.bootx.mybatis.table.modify.mybatis.mysq.annotation.MySqlEngine;
 import cn.bootx.mybatis.table.modify.mybatis.mysq.constants.MySqlEngineEnum;
-import cn.bootx.mybatis.table.modify.impl.mysql.entity.*;
 import cn.bootx.mybatis.table.modify.mybatis.mysq.mapper.MySqlTableModifyMapper;
 import cn.bootx.mybatis.table.modify.mybatis.mysq.util.MySqlInfoUtil;
 import cn.bootx.mybatis.table.modify.mybatis.mysq.entity.*;

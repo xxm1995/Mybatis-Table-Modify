@@ -2,7 +2,6 @@ package cn.bootx.mybatis.table.modify.mybatis.mysq.mapper;
 
 import java.util.List;
 
-import cn.bootx.mybatis.table.modify.impl.mysql.entity.*;
 import cn.bootx.mybatis.table.modify.domain.TableConfig;
 import cn.bootx.mybatis.table.modify.mybatis.mysq.entity.*;
 import com.baomidou.mybatisplus.annotation.InterceptorIgnore;
@@ -16,7 +15,7 @@ import org.apache.ibatis.annotations.Param;
  *
  */
 @Mapper
-@InterceptorIgnore(tenantLine = "true")
+@InterceptorIgnore(tenantLine = "true",blockAttack = "true",illegalSql = "true",dynamicTableName = "true")
 public interface MySqlTableModifyMapper {
 
     /**

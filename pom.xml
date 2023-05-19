@@ -2,7 +2,7 @@
 
     <groupId>cn.bootx</groupId>
     <artifactId>mybatis-table-modify</artifactId>
-    <version>1.5.2</version>
+    <version>1.5.3.alpha1</version>
 
     <packaging>pom</packaging>
     <modelVersion>4.0.0</modelVersion>
@@ -47,7 +47,7 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
 
-        <mybatis-table-modify.version>1.5.2</mybatis-table-modify.version>
+        <mybatis-table-modify.version>1.5.3.alpha1</mybatis-table-modify.version>
 
         <spring.version>5.3.26</spring.version>
         <spring-boot.version>2.7.10</spring-boot.version>
@@ -76,6 +76,22 @@
             <groupId>org.projectlombok</groupId>
             <artifactId>lombok</artifactId>
             <version>${lombok.version}</version>
+            <scope>provided</scope>
+        </dependency>
+
+        <!-- mybatis 依赖 -->
+        <dependency>
+            <groupId>org.mybatis</groupId>
+            <artifactId>mybatis-spring</artifactId>
+            <version>${mybatis-spring.version}</version>
+            <scope>provided</scope>
+        </dependency>
+
+        <!-- mybatis 依赖 -->
+        <dependency>
+            <groupId>org.mybatis</groupId>
+            <artifactId>mybatis</artifactId>
+            <version>${mybatis.version}</version>
             <scope>provided</scope>
         </dependency>
 

@@ -2,7 +2,7 @@
 
 <p>
  <img src='https://gitee.com/bootx/mybatis-table-modify/badge/star.svg?theme=dark' alt='star'/>
- <img src="https://img.shields.io/badge/mybatis table modify-1.5.2-success.svg" alt="Build Status"/>
+ <img src="https://img.shields.io/badge/mybatis table modify-1.5.3.alpha1-success.svg" alt="Build Status"/>
 <img src="https://img.shields.io/badge/Author-Bootx-orange.svg" alt="Build Status"/>
  <img src="https://img.shields.io/badge/license-Apache%20License%202.0-green.svg"/>
 </p>
@@ -12,8 +12,8 @@
 并对功能进行了改造。因为该A.C.Table项目近期发生了停更，所以打算把这些功能给开源出来，同时继续将这个项目完善下去。
 
 ## 🍎 路线图
-- 1.5.1 主要目标：调整项目结构，去除除表维护相关的其他功能，代码暂时只适配Spring Boot项目
-- 1.5.2 主要目标
+- 1.5.2 主要目标：调整项目结构，去除除表维护相关的其他功能，代码暂时只适配Spring Boot项目
+- 1.5.3 主要目标
   - 拆分为Maven多模块项目，支持非Spring Boot的项目接入
   - 支持MP的字段忽略配置
   - 支持简单索引方式

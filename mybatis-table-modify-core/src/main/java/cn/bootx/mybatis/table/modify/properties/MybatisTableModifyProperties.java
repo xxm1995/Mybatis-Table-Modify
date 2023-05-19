@@ -1,10 +1,10 @@
-package cn.bootx.mybatis.table.modify.mybatis.mysq.configuration;
+package cn.bootx.mybatis.table.modify.properties;
 
 import cn.bootx.mybatis.table.modify.constants.DatabaseType;
 import cn.bootx.mybatis.table.modify.constants.UpdateType;
 import lombok.Data;
 import lombok.experimental.Accessors;
-import org.springframework.boot.context.properties.ConfigurationProperties;
+import lombok.experimental.Delegate;
 
 /**
  * @author xxm
@@ -12,12 +12,12 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
  */
 @Data
 @Accessors(chain = true)
-//@ConfigurationProperties(prefix = "mybatis-table")
 public class MybatisTableModifyProperties {
 
     /**
      * 数据库类型
      */
+    @Delegate
     private DatabaseType databaseType = DatabaseType.MYSQL;
 
     /**

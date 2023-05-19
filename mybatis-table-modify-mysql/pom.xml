@@ -6,17 +6,25 @@
     <parent>
         <groupId>cn.bootx</groupId>
         <artifactId>mybatis-table-modify</artifactId>
-        <version>1.5.2</version>
+        <version>1.5.3.alpha1</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
 
     <artifactId>mybatis-table-modify-mysql</artifactId>
 
     <dependencies>
+        <!-- core -->
         <dependency>
             <groupId>cn.bootxtest</groupId>
             <artifactId>mybatis-table-modify-core</artifactId>
             <version>${mybatis-table-modify.version}</version>
+        </dependency>
+        <!-- spring 核心依赖 -->
+        <dependency>
+            <groupId>org.springframework</groupId>
+            <artifactId>spring-context</artifactId>
+            <version>${spring.version}</version>
+            <scope>provided</scope>
         </dependency>
     </dependencies>
 </project>
