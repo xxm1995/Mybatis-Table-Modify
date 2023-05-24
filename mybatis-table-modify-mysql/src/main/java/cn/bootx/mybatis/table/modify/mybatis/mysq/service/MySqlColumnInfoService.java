@@ -40,10 +40,6 @@ public class MySqlColumnInfoService {
         try {
             entityColumns = MySqlInfoUtil.getEntityColumns(clas);
             baseTableMap.getAddColumns().put(tableName,entityColumns);
-            if (entityColumns.size() == 0) {
-                log.warn("扫描发现" + clas.getName() + "没有建表字段请检查！");
-            }
-
         } catch (Exception e) {
             log.error("表：{}，初始化字段结构失败！", tableName);
             throw new RuntimeException(e.getMessage());
@@ -61,10 +57,6 @@ public class MySqlColumnInfoService {
         List<MySqlEntityColumn> entityColumns;
         try {
             entityColumns = MySqlInfoUtil.getEntityColumns(clas);
-            if (entityColumns.size() == 0) {
-                log.warn("扫描发现" + clas.getName() + "没有建表字段请检查！");
-                return;
-            }
         }
         catch (Exception e) {
             log.error("表：{}，初始化字段结构失败！", tableName);

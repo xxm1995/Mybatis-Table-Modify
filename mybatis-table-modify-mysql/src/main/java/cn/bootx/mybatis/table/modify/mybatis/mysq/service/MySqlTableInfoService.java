@@ -68,8 +68,11 @@ public class MySqlTableInfoService {
         // 比对表注释
         String entityComment = ColumnUtils.getTableComment(clas);
         if (!Objects.equals(tableInfo.getTableComment(),entityComment)){
-            updateTableInfo.setComment(entityComment)
-                    .setCommentUpdate(true);
+            // 非否追加模式下且不为空字符串进行更新
+            if (!ColumnUtils.isAppend(clas) && StrUtil.isNotBlank(entityComment)) {
+                updateTableInfo.setComment(entityComment)
+                        .setCommentUpdate(true);
+            }
         }
 
         // 比对表字符集, 表不为空且字符集不一致
@@ -77,28 +80,35 @@ public class MySqlTableInfoService {
         String tableCharset = this.getTableCharset(tableInfo.getTableCollation());
         if (Objects.nonNull(entityCharset)&&
                 tableCharset.equalsIgnoreCase(entityCharset.getValue())){
-            updateTableInfo.setCharset(entityComment)
-                    .setCharsetUpdate(true);
+            // 非否追加模式下且不为空字符串进行更新
+            if (!ColumnUtils.isAppend(clas) && StrUtil.isNotBlank(tableCharset)){
+                updateTableInfo.setCharset(entityComment)
+                        .setCharsetUpdate(true);
+            }
         }
         // 获取表引擎
         MySqlEngineEnum entityEngine = getEntityEngine(clas);
-        if (Objects.nonNull(entityEngine)&&
-                !entityEngine.name().equalsIgnoreCase(tableInfo.getEngine())){
-            updateTableInfo.setEngine(entityEngine.name())
-                    .setEngineUpdate(true);
+        if (Objects.nonNull(entityEngine)&&!entityEngine.name().equalsIgnoreCase(tableInfo.getEngine())){
+            // 不为空且非追加模式进行更新
+            if (!ColumnUtils.isAppend(clas)){
+                updateTableInfo.setEngine(entityEngine.name())
+                        .setEngineUpdate(true);
+            }
         }
-        // 获取主键
-        List<String> entityKeys = getEntityKeys(clas);
-        List<String> tableKeys = getTableKeys(tableName);
-        // 数量不一致
-        if (entityKeys.size()!=tableKeys.size()){
-            updateTableInfo.setKeys(entityKeys)
-                    .setKeysUpdate(true);
-        }
-        // 字段不一致
-        else if (!new HashSet<>(entityKeys).containsAll(tableKeys)){
-            updateTableInfo.setKeys(entityKeys)
-                    .setKeysUpdate(true);
+        // 追加模式不处理主键
+        if (!ColumnUtils.isAppend(clas)){
+            List<String> entityKeys = getEntityKeys(clas);
+            List<String> tableKeys = getTableKeys(tableName);
+            // 数量不一致
+            if (entityKeys.size()!=tableKeys.size()){
+                updateTableInfo.setKeys(entityKeys)
+                        .setKeysUpdate(true);
+            }
+            // 字段不一致
+            else if (!new HashSet<>(entityKeys).containsAll(tableKeys)){
+                updateTableInfo.setKeys(entityKeys)
+                        .setKeysUpdate(true);
+            }
         }
         baseTableMap.getUpdateTables().add(updateTableInfo);
     }

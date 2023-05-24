@@ -10,6 +10,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -98,19 +99,42 @@ public class MySqlModifyTableService {
 
         // 删除索引
         if (updateType != UpdateType.CREATE){
+
+            List<String> delIndexes = new ArrayList<>();
+            // 要进行删除的索引
             if (CollUtil.isNotEmpty(modifyMap.getDropIndexes().get(table.getName()))) {
-                mySqlModifyParam.setDropIndexes(modifyMap.getDropIndexes().get(table.getName()));
+                delIndexes.addAll(modifyMap.getDropIndexes().get(table.getName()));
+            }
+            // 更新的索引需要先删后增
+            if (CollUtil.isNotEmpty(modifyMap.getUpdateIndexes().get(table.getName()))){
+                List<String> list = modifyMap.getUpdateIndexes().get(table.getName())
+                        .stream()
+                        .map(MySqlEntityIndex::getName)
+                        .collect(Collectors.toList());
+                delIndexes.addAll(list);
+            }
+
+            if (CollUtil.isNotEmpty(delIndexes)){
+                mySqlModifyParam.setDropIndexes(delIndexes);
             }
         }
 
         // 新增索引
         if (CollUtil.isNotEmpty(modifyMap.getAddIndexes().get(table.getName()))) {
-            List<String> indexes = modifyMap.getAddIndexes()
-                    .get(table.getName())
+            // 要进行添加的索引
+            List<String> addIndexes = modifyMap.getAddIndexes().get(table.getName())
                     .stream()
                     .map(MySqlEntityIndex::toIndex)
                     .collect(Collectors.toList());
-            mySqlModifyParam.setAddIndexes(indexes);
+            // 更新的索引需要先删后增
+            if (CollUtil.isNotEmpty(modifyMap.getUpdateIndexes().get(table.getName()))){{
+                List<String> list = modifyMap.getUpdateIndexes().get(table.getName())
+                        .stream()
+                        .map(MySqlEntityIndex::toIndex)
+                        .collect(Collectors.toList());
+                addIndexes.addAll(list);
+            }}
+            mySqlModifyParam.setAddIndexes(addIndexes);
         }
 
         return mySqlModifyParam;

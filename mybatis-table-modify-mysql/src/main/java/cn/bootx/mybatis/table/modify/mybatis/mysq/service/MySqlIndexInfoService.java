@@ -52,6 +52,9 @@ public class MySqlIndexInfoService {
      */
     public void getModifyIndex(Class<?> clas, MySqlModifyMap baseTableMap){
 
+        // 是否追加模式
+        boolean append = ColumnUtils.isAppend(clas);
+
         // 获取entity的tableName
         String tableName = ColumnUtils.getTableName(clas);
 
@@ -61,9 +64,9 @@ public class MySqlIndexInfoService {
         // 查询当前表中全部索引
         List<MySqlTableIndex> tableIndexes = mysqlTableModifyMapper.findIndexByTableName(tableName);
 
-        // 找出需要删除的索引
+        // 找出需要删除的索引, 追加模式不进行删除
         List<String> dropIndexes = getDropIndexes(tableIndexes, entityIndexes);
-        if (CollUtil.isNotEmpty(dropIndexes)) {
+        if (CollUtil.isNotEmpty(dropIndexes)&&!append) {
             baseTableMap.getDropIndexes().put(tableName, dropIndexes);
         }
         // 找出需要新增的索引

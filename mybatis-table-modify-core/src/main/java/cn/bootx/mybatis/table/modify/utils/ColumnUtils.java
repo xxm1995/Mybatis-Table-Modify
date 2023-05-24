@@ -232,6 +232,8 @@ public class ColumnUtils {
     public static boolean hasColumn(Field field, Class<?> clazz) {
         // 是否开启simple模式
         boolean isSimple = isSimple(clazz);
+        // 是否开启了追加模式
+        boolean isAppend = isAppend(clazz);
         // 不参与建表的字段
         String[] excludeFields = excludeFields(clazz);
         // 当前属性名在排除建表的字段内
@@ -249,9 +251,14 @@ public class ColumnUtils {
 
         // 判断是否忽略该字段
         if (Objects.nonNull(ignore)
-                ||(column != null && column.ignore())) {
+                ||(Objects.nonNull(column) && column.ignore())) {
             return false;
         }
+        // 查看是否满足追加模式
+        if (Objects.isNull(column) && isAppend){
+            return false;
+        }
+
         // 开启了simple模式
         if (column == null && (tableField == null || !tableField.exist()) && tableId == null) {
             return isSimple;
@@ -302,6 +309,17 @@ public class ColumnUtils {
             isSimple = tableName.isSimple();
         }
         return isSimple;
+    }
+    /**
+     * 是否是追加模式
+     */
+    public static boolean isAppend(Class<?> clazz) {
+        boolean isAppend = false;
+        DbTable dbTable = clazz.getAnnotation(DbTable.class);
+        if (Objects.nonNull(dbTable)) {
+            isAppend = dbTable.isAppend();
+        }
+        return isAppend;
     }
 
     /**

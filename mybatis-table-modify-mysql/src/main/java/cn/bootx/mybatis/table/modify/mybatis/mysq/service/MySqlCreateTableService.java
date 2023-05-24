@@ -35,7 +35,13 @@ public class MySqlCreateTableService {
         for (MySqlEntityTable table : modifyMap.getCreateTables()) {
             log.info("开始创建表：" + table.getName());
             try {
-                mysqlTableModifyMapper.createTable(this.buildCreateParam(table,modifyMap));
+                MySqlCreateParam createParam = this.buildCreateParam(table, modifyMap);
+                // 表字段为空不进行创建
+                if (CollUtil.isEmpty(createParam.getColumns())){
+                    log.warn("扫描发现 {} 没有建表字段，请检查！",createParam.getName());
+                }
+
+                mysqlTableModifyMapper.createTable(createParam);
                 log.info("完成创建表：" + table.getName());
             } catch (Exception e){
                 log.error("创建表失败：" + table.getName(),e);
