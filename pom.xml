@@ -7,6 +7,7 @@
     <packaging>pom</packaging>
     <modelVersion>4.0.0</modelVersion>
 
+    <!-- 项目信息 -->
     <name>mybatis-table-modify</name>
     <description>mybatis-table-modify 是一个基于 Spring 和 Mybatis 的项目，它可以通过给实体类上标注注解来生成和维护数据库表结构信息</description>
     <url>https://gitee.com/bootx/mybatis-table-modify</url>

@@ -10,7 +10,7 @@ import java.lang.annotation.*;
  * @author sunchenbin
  * @version 2019年6月14日 下午6:12:48
  */
-@Target(ElementType.TYPE)
+@Target({ElementType.TYPE,ElementType.FIELD})
 @Retention(RetentionPolicy.RUNTIME)
 @Repeatable(value = MySqlIndexes.class)
 @Documented
@@ -27,9 +27,16 @@ public @interface MySqlIndex {
     String name() default "";
 
     /**
-     * 要建立索引的字段名，可设置多个建立联合索引{"login_mobile","login_name"}
+     * 要建立索引的数据库字段名，可设置多个建立联合索引{"login_mobile","login_name"}, 只可以在类上使用
      */
     String[] columns();
+
+    /**
+     * 要建立索引的实体类字段名，会自动转换为数据库字段名称，
+     * 可设置多个建立联合索引{"login_mobile","login_name"}, 只可以在类上使用
+     * columns同时配置的话，本配置不生效
+     */
+    String[] fields();
 
     /**
      * 索引注释
