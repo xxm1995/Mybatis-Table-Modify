@@ -69,4 +69,9 @@ public @interface DbColumn {
      */
     boolean ignore() default false;
 
+    /**
+     * 是否删除
+     */
+    boolean delete() default false;
+
 }

@@ -68,6 +68,11 @@ public class DbColumnImpl implements DbColumn {
     }
 
     @Override
+    public boolean delete() {
+        return false;
+    }
+
+    @Override
     public Class<? extends Annotation> annotationType() {
         return null;
     }

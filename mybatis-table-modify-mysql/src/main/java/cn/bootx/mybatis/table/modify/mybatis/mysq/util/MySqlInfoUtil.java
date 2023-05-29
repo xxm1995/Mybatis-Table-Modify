@@ -7,7 +7,6 @@ import cn.bootx.mybatis.table.modify.mybatis.mysq.constants.MySql4JavaType;
 import cn.bootx.mybatis.table.modify.mybatis.mysq.entity.MySqlEntityColumn;
 import cn.bootx.mybatis.table.modify.mybatis.mysq.entity.MySqlTypeAndLength;
 import cn.bootx.mybatis.table.modify.utils.ColumnUtils;
-import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.core.util.StrUtil;
 import lombok.experimental.UtilityClass;
 
@@ -48,6 +47,7 @@ public class MySqlInfoUtil {
                         .setKey(ColumnUtils.isKey(field, clas))
                         .setAutoIncrement(ColumnUtils.isAutoIncrement(field, clas))
                         .setDefaultValue(ColumnUtils.getDefaultValue(field, clas))
+                        .setDelete(ColumnUtils.isDelete(field,clas))
                         .setComment(ColumnUtils.getComment(field, clas));
                 // 长度需要配置
                 entityColumn.setLength(mySqlTypeAndLength.getLength());
@@ -72,7 +72,7 @@ public class MySqlInfoUtil {
      * @param clas 类
      * @param fields 属性
      */
-    private Field[] recursionParents(Class<?> clas, Field[] fields) {
+    public  Field[] recursionParents(Class<?> clas, Field[] fields) {
         if (clas.getSuperclass() != null) {
             Class<?> clsSup = clas.getSuperclass();
             List<Field> fieldList = new ArrayList<>(Arrays.asList(fields));
@@ -119,7 +119,7 @@ public class MySqlInfoUtil {
         }
 
         // 处理字段注解是否有自定义的长度配置
-        DbColumn column = ColumnUtils.getColumnAnno(field, clazz);
+        DbColumn column = ColumnUtils.getDbColumnAnno(field, clazz);
         if (Objects.isNull(column)) {
             typeAndLengthHandler(typeAndLength,255, 0);
         } else {
@@ -158,10 +158,10 @@ public class MySqlInfoUtil {
     /**
      * 获取索引的名称，不设置则默认为索引类型+用_分隔的字段名计划
      */
-    public static String getIndexName(MySqlIndex mySqlIndex){
+    public static String getIndexName(MySqlIndex mySqlIndex,List<String> columns){
         if (StrUtil.isNotBlank(mySqlIndex.name())){
             return mySqlIndex.name();
         }
-        return mySqlIndex.type().getPrefix()+String.join("_", mySqlIndex.columns());
+        return mySqlIndex.type().getPrefix()+String.join("_", columns);
     }
 }

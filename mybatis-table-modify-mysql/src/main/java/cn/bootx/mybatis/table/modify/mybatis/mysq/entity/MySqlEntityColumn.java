@@ -51,6 +51,9 @@ public class MySqlEntityColumn implements Cloneable {
     /** 字段默认值 */
     private String defaultValue;
 
+    /** 是否需要删除 */
+    private boolean delete;
+
     /** 字段的备注 */
     private String comment;
 

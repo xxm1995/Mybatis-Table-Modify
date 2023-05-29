@@ -91,10 +91,9 @@ public class ColumnUtils {
 
     /**
      * 获取行名称
-     * @return
      */
     public static String getColumnName(Field field, Class<?> clazz) {
-        DbColumn column = getColumnAnno(field, clazz);
+        DbColumn column = getDbColumnAnno(field, clazz);
         TableField tableField = field.getAnnotation(TableField.class);
         TableId tableId = field.getAnnotation(TableId.class);
         if (!hasColumn(field, clazz)) {
@@ -120,7 +119,7 @@ public class ColumnUtils {
      * @return
      */
     public static int getColumnOrder(Field field, Class<?> clazz) {
-        DbColumn column = getColumnAnno(field, clazz);
+        DbColumn column = getDbColumnAnno(field, clazz);
         if (!hasColumn(field, clazz)) {
             return 0;
         }
@@ -132,7 +131,6 @@ public class ColumnUtils {
      */
     private static String getBuildLowerName(String name) {
         return NamingCase.toUnderlineCase(name);
-//        return CaseFormat.LOWER_CAMEL.to(CaseFormat.LOWER_UNDERSCORE, name).toLowerCase();
     }
 
     /**
@@ -143,7 +141,7 @@ public class ColumnUtils {
             return false;
         }
 
-        DbColumn column = getColumnAnno(field, clazz);
+        DbColumn column = getDbColumnAnno(field, clazz);
         IsKey isKey = field.getAnnotation(IsKey.class);
         TableId tableId = field.getAnnotation(TableId.class);
         if (Objects.nonNull(column) && column.isKey()) {
@@ -161,7 +159,7 @@ public class ColumnUtils {
      * 是否是自增， 主键才可以自增
      */
     public static boolean isAutoIncrement(Field field, Class<?> clazz) {
-        DbColumn column = getColumnAnno(field, clazz);
+        DbColumn column = getDbColumnAnno(field, clazz);
         if (!isKey(field, clazz)) {
             return false;
         }
@@ -170,12 +168,9 @@ public class ColumnUtils {
 
     /**
      * 是否可以为空
-     * @param field
-     * @param clazz
-     * @return
      */
-    public static Boolean isNull(Field field, Class<?> clazz) {
-        DbColumn column = getColumnAnno(field, clazz);
+    public static boolean isNull(Field field, Class<?> clazz) {
+        DbColumn column = getDbColumnAnno(field, clazz);
         if (!hasColumn(field, clazz)) {
             return true;
         }
@@ -191,15 +186,30 @@ public class ColumnUtils {
     }
 
     /**
+     * 该字段是否需要删除
+     */
+    public static boolean isDelete(Field field, Class<?> clazz){
+        DbColumn dbColumn = getDbColumnAnno(field,clazz);
+        DbColumnDelete dbColumnDelete = field.getAnnotation(DbColumnDelete.class);
+        if (Objects.nonNull(dbColumn)&&dbColumn.delete()){
+            return true;
+        } else if(Objects.nonNull(dbColumnDelete)){
+            return true;
+        } else {
+            return false;
+        }
+    }
+    /**
      * 获取字段的备注
      */
     public static String getComment(Field field, Class<?> clazz) {
-        DbColumn column = getColumnAnno(field, clazz);
-        if (!hasColumn(field, clazz)) {
-            return null;
-        }
-        if (column != null) {
+        DbColumn column = getDbColumnAnno(field, clazz);
+        DbComment dbComment = field.getAnnotation(DbComment.class);
+        if (Objects.nonNull(column) && StrUtil.isNotBlank(column.comment())) {
             return column.comment();
+        }
+        if (Objects.nonNull(dbComment)) {
+            return dbComment.value();
         }
         return null;
     }
@@ -208,7 +218,7 @@ public class ColumnUtils {
      * 获取默认值
      */
     public static String getDefaultValue(Field field, Class<?> clazz) {
-        DbColumn column = getColumnAnno(field, clazz);
+        DbColumn column = getDbColumnAnno(field, clazz);
         if (!hasColumn(field, clazz)) {
             return null;
         }
@@ -228,6 +238,8 @@ public class ColumnUtils {
 
     /**
      * 本行是否需要进行处理, 兼容mybatis注解
+     * simple模式: 开启后Field不写注解@Column也可以采用默认的驼峰转换法创建字段
+     * append模式: 开启追加模式,字段必须要添加@DbColumn注解才会触发更新或新增
      */
     public static boolean hasColumn(Field field, Class<?> clazz) {
         // 是否开启simple模式
@@ -266,10 +278,11 @@ public class ColumnUtils {
         return true;
     }
 
+
     /**
      * 获取列注解
      */
-    public static DbColumn getColumnAnno(Field field, Class<?> clazz) {
+    public static DbColumn getDbColumnAnno(Field field, Class<?> clazz) {
         // 不参与建表的字段
         String[] excludeFields = excludeFields(clazz);
         if (Arrays.asList(excludeFields).contains(field.getName())) {
@@ -279,7 +292,6 @@ public class ColumnUtils {
         if (column != null) {
             return column;
         }
-        // 是否开启simple模式
         // 开启了simple模式
         if (isSimple(clazz)) {
             return new DbColumnImpl();

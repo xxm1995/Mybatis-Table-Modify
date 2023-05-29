@@ -27,16 +27,16 @@ public @interface MySqlIndex {
     String name() default "";
 
     /**
-     * 要建立索引的数据库字段名，可设置多个建立联合索引{"login_mobile","login_name"}, 只可以在类上使用
+     * 要建立索引的数据库字段名，可设置多个建立联合索引{"login_mobile","login_name"}, 只可以在类上使用, 字段上使用不生效
      */
-    String[] columns();
+    String[] columns() default {};
 
     /**
      * 要建立索引的实体类字段名，会自动转换为数据库字段名称，
-     * 可设置多个建立联合索引{"login_mobile","login_name"}, 只可以在类上使用
-     * columns同时配置的话，本配置不生效
+     * 可设置多个建立联合索引{"login_mobile","login_name"}, 只可以在类上使用, 字段上使用不生效
+     * 如果 {columns} 同时配置的话，本配置不生效
      */
-    String[] fields();
+    String[] fields() default {};
 
     /**
      * 索引注释

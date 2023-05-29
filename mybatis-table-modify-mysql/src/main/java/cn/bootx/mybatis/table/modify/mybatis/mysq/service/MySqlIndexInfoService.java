@@ -11,11 +11,13 @@ import cn.bootx.mybatis.table.modify.mybatis.mysq.util.MySqlInfoUtil;
 import cn.bootx.mybatis.table.modify.utils.ColumnUtils;
 import cn.hutool.core.collection.CollUtil;
 import cn.hutool.core.collection.ListUtil;
+import cn.hutool.core.util.StrUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import lombok.val;
 import org.springframework.stereotype.Component;
 
+import java.lang.reflect.Field;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -215,8 +217,10 @@ public class MySqlIndexInfoService {
 
     /**
      * 获取实体类配置的索引
+     * 首先获取实体类上创建的索引, 如果不存在, 获取字段上配置的索引
      */
     private List<MySqlEntityIndex> getEntityIndexes(Class<?> clas){
+
         // 多个索引注释处理
         List<MySqlIndex> indexList = Optional.ofNullable(clas.getAnnotation(MySqlIndexes.class))
                 .map(MySqlIndexes::value)
@@ -229,13 +233,70 @@ public class MySqlIndexInfoService {
                 indexList = ListUtil.of(mySqlIndex);
             }
         }
+        // 返回处理完的索引配置
+        if (CollUtil.isNotEmpty(indexList)) {
+            return indexList.stream()
+                    .map(index -> {
+                        List<String> columns = null;
+                        // 先取数据库字段名配置
+                        if (Objects.nonNull(index.columns())){
+                            columns = Arrays.asList(index.columns());
+                        }
+                        // 不存在取先取实体类字段配置
+                        if (CollUtil.isEmpty(columns)){
 
-        return indexList.stream()
-                .map(index -> new MySqlEntityIndex()
-                        .setType(index.type())
-                        .setName(MySqlInfoUtil.getIndexName(index))
-                        .setColumns(Arrays.asList(index.columns()))
-                        .setComment(index.comment()))
+                        }
+                        // 如果还为空. 抛出错误
+                        return new MySqlEntityIndex()
+                                .setType(index.type())
+                                .setName(MySqlInfoUtil.getIndexName(index,columns))
+                                .setColumns()
+                                .setComment(index.comment());
+                    })
+                    .collect(Collectors.toList());
+        } else {
+            return getSimpleIndexes(clas);
+        }
+
+    }
+
+    /**
+     * 获取实体类字段对应的数据库表字段名称
+     */
+    private String getIndexColumnName(String name,Class<?> clazz){
+
+    }
+
+    /**
+     * 获取字段上配置的简单索引方式
+     */
+    private List<MySqlEntityIndex> getSimpleIndexes(Class<?> clas){
+        // 实体类上未声明索引, 开始遍历字段找到索引配置, 进行简单索引方式处理
+        Field[] fields = clas.getDeclaredFields();
+        fields = MySqlInfoUtil.recursionParents(clas, fields);
+        return Arrays.stream(fields).map(field->{
+                    MySqlIndex index = field.getAnnotation(MySqlIndex.class);
+                    if (Objects.isNull(index)){
+                        return null;
+                    }
+                    MySqlEntityIndex mySqlEntityIndex = new MySqlEntityIndex()
+                            .setType(index.type());
+                    // 字段
+                    String columnName = ColumnUtils.getColumnName(field, clas);
+                    mySqlEntityIndex.setColumns(Collections.singletonList(columnName));
+                    // 名称
+                    if (StrUtil.isNotBlank(index.name())){
+                        mySqlEntityIndex.setName(index.name());
+                    } else {
+                        mySqlEntityIndex.setName(columnName);
+                    }
+                    // 注释
+                    if (StrUtil.isNotBlank(index.comment())){
+                        mySqlEntityIndex.setComment(index.comment());
+                    }
+                    return mySqlEntityIndex;
+                })
+                .filter(Objects::nonNull)
                 .collect(Collectors.toList());
     }
 }

@@ -38,7 +38,9 @@ public class MySqlColumnInfoService {
         // 用于实体类配置的全部字段
         List<MySqlEntityColumn> entityColumns;
         try {
-            entityColumns = MySqlInfoUtil.getEntityColumns(clas);
+            entityColumns = MySqlInfoUtil.getEntityColumns(clas).stream()
+                    .filter(o->!o.isDelete())
+                    .collect(Collectors.toList());
             baseTableMap.getAddColumns().put(tableName,entityColumns);
         } catch (Exception e) {
             log.error("表：{}，初始化字段结构失败！", tableName);
@@ -64,6 +66,9 @@ public class MySqlColumnInfoService {
         }
         // 数据库表结构
         List<MysqlTableColumn> tableColumns = mysqlTableModifyMapper.findColumnByTableName(tableName);
+        // 是否追加模式
+        boolean append = ColumnUtils.isAppend(clas);
+
 
         // 找出增加的字段
         List<MySqlEntityColumn> addColumns = getAddColumns(entityColumns, tableColumns);
@@ -71,7 +76,7 @@ public class MySqlColumnInfoService {
             baseTableMap.getAddColumns().put(tableName, addColumns);
         }
         // 找出删除的字段
-        List<String> dropColumns = getDropColumns(entityColumns, tableColumns);
+        List<String> dropColumns = getDropColumns(entityColumns, tableColumns, append);
         if (dropColumns.size() != 0) {
             baseTableMap.getDropColumns().put(tableName, dropColumns);
         }
@@ -84,8 +89,9 @@ public class MySqlColumnInfoService {
 
     /**
      * 根据数据库中表的结构和entity中表的结构对比找出新增的字段
+     *
      * @param entityColumns entity中的所有字段
-     * @param tableColumns 数据库中的结构
+     * @param tableColumns  数据库中的结构
      * @return 新增的字段
      */
     private List<MySqlEntityColumn> getAddColumns(List<MySqlEntityColumn> entityColumns, List<MysqlTableColumn> tableColumns) {
@@ -96,45 +102,70 @@ public class MySqlColumnInfoService {
                 .collect(Collectors.toList());
         // 数据库中不存在, 进行添加
         return entityColumns.stream()
+                .filter(o->!o.isDelete())
                 .filter(column->!tableColumnNames.contains(column.getName().toLowerCase()))
                 .collect(Collectors.toList());
     }
 
     /**
      * 根据数据库中表的结构和entity中表的结构对比找出删除的字段
+     *
      * @param entityColumns entity中的所有字段
-     * @param tableColumns 数据库中的结构
+     * @param tableColumns  数据库中的结构
+     * @param append 是否追加模式
      */
-    private List<String> getDropColumns(List<MySqlEntityColumn> entityColumns, List<MysqlTableColumn> tableColumns) {
-        List<String> entityColumnNames = entityColumns.stream()
-                .map(MySqlEntityColumn::getName)
-                .map(String::toLowerCase)
-                .collect(Collectors.toList());
-        // 实体类上不存在, 进行删除
-        return tableColumns.stream()
-                .map(MysqlTableColumn::getColumnName)
-                .filter(columnName -> !entityColumnNames.contains(columnName.toLowerCase()))
-                .collect(Collectors.toList());
+    private List<String> getDropColumns(List<MySqlEntityColumn> entityColumns, List<MysqlTableColumn> tableColumns, boolean append) {
+        // 是否追加模式
+        if (append) {
+            // 删除标记删除的字段
+            List<String> deletes = entityColumns.stream()
+                    .filter(MySqlEntityColumn::isDelete)
+                    .map(MySqlEntityColumn::getName)
+                    .map(String::toLowerCase)
+                    .collect(Collectors.toList());
+            // 比对数据库字段, 把未删除的字段筛选出来
+            return tableColumns.stream()
+                    .map(MysqlTableColumn::getColumnName)
+                    .map(String::toLowerCase)
+                    .filter(columnName -> deletes.contains(columnName.toLowerCase()))
+                    .collect(Collectors.toList());
+        } else {
+            // 筛选出来不需要进行删除的字段
+            List<String> entityColumnNames = entityColumns.stream()
+                    .filter(o->!o.isDelete())
+                    .map(MySqlEntityColumn::getName)
+                    .map(String::toLowerCase)
+                    .collect(Collectors.toList());
+            // 比对数据库的配置将,找出需要删除的字段, 进行删除
+            return tableColumns.stream()
+                    .map(MysqlTableColumn::getColumnName)
+                    .filter(columnName -> !entityColumnNames.contains(columnName.toLowerCase()))
+                    .collect(Collectors.toList());
+        }
     }
 
     /**
      * 根据数据库中表的结构和entity中表的结构对比找出修改类型默认值等属性的字段
+     *
+     * @param entityColumns entity中的所有字段
+     * @param tableColumns  数据库中的结构
      * @return 需要修改的字段
      */
-    private List<MySqlEntityColumn> getUpdateColumns(List<MySqlEntityColumn> entityColumns, List<MysqlTableColumn> tableColumnList) {
+    private List<MySqlEntityColumn> getUpdateColumns(List<MySqlEntityColumn> entityColumns, List<MysqlTableColumn> tableColumns) {
         // 现有的数据库字段配置
-        List<String> tableIndexNames = tableColumnList.stream()
+        List<String> tableIndexNames = tableColumns.stream()
                 .map(MysqlTableColumn::getColumnName)
                 .map(String::toLowerCase)
                 .distinct()
                 .collect(Collectors.toList());
 
         // 现有的数据库字段配置 MAP
-        val tableColumnMap = tableColumnList.stream()
+        val tableColumnMap = tableColumns.stream()
                 .collect(Collectors.toMap(column -> column.getColumnName().toLowerCase(), Function.identity()));
 
         // 把两者都有的字段筛选出来进行对比, 筛选出来有不同的字段
         return entityColumns.stream()
+                .filter(o->!o.isDelete())
                 .filter(column->tableIndexNames.contains(column.getName().toLowerCase()))
                 .filter(entityColumn->!compareColumn(tableColumnMap.get(entityColumn.getName().toLowerCase()),entityColumn))
                 .collect(Collectors.toList());
