@@ -15,10 +15,9 @@ import lombok.experimental.Delegate;
 public class MybatisTableModifyProperties {
 
     /**
-     * 数据库类型
+     * 是否开启快速失败模式, 出现错误项目直接停止启动
      */
-    @Delegate
-    private DatabaseType databaseType = DatabaseType.MYSQL;
+    private boolean failFast = true;
 
     /**
      * 更新模式

@@ -233,7 +233,7 @@ public class MySqlColumnInfoService {
                 return false;
             }
         }
-        // 8.验证注释
+        // 8.验证注释是否发生了变动
         if (!Objects.equals(tableColumn.getColumnComment(),entityColumn.getComment())) {
             return false;
         }

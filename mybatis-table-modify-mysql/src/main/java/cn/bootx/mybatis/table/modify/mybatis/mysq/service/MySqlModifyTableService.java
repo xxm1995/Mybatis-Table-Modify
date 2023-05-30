@@ -43,6 +43,10 @@ public class MySqlModifyTableService {
                     log.info("完成更新表：" + table.getName());
                 } catch (Exception e){
                     log.error("更新表失败：" + table.getName(),e);
+                    // 快速失败
+                    if (mybatisTableModifyProperties.isFailFast()){
+                        throw e;
+                    }
                 }
             }
         }

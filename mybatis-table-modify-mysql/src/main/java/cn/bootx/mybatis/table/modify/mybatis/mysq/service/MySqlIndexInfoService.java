@@ -8,9 +8,11 @@ import cn.bootx.mybatis.table.modify.mybatis.mysq.entity.MySqlModifyMap;
 import cn.bootx.mybatis.table.modify.mybatis.mysq.entity.MySqlTableIndex;
 import cn.bootx.mybatis.table.modify.mybatis.mysq.mapper.MySqlTableModifyMapper;
 import cn.bootx.mybatis.table.modify.mybatis.mysq.util.MySqlInfoUtil;
+import cn.bootx.mybatis.table.modify.utils.ClassUtils;
 import cn.bootx.mybatis.table.modify.utils.ColumnUtils;
 import cn.hutool.core.collection.CollUtil;
 import cn.hutool.core.collection.ListUtil;
+import cn.hutool.core.util.ClassUtil;
 import cn.hutool.core.util.StrUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -242,15 +244,18 @@ public class MySqlIndexInfoService {
                         if (Objects.nonNull(index.columns())){
                             columns = Arrays.asList(index.columns());
                         }
-                        // 不存在取先取实体类字段配置
+                        // 不存在取实体类字段配置
                         if (CollUtil.isEmpty(columns)){
-
+                            columns = getIndexColumnName(index.fields(),clas);
                         }
                         // 如果还为空. 抛出错误
+                        if (CollUtil.isEmpty(columns)){
+                            throw new RuntimeException("索引字段配置为空");
+                        }
                         return new MySqlEntityIndex()
                                 .setType(index.type())
                                 .setName(MySqlInfoUtil.getIndexName(index,columns))
-                                .setColumns()
+                                .setColumns(columns)
                                 .setComment(index.comment());
                     })
                     .collect(Collectors.toList());
@@ -263,8 +268,13 @@ public class MySqlIndexInfoService {
     /**
      * 获取实体类字段对应的数据库表字段名称
      */
-    private String getIndexColumnName(String name,Class<?> clazz){
-
+    private List<String> getIndexColumnName(String[] fields,Class<?> clas){
+        return Arrays.stream(fields)
+                .map(fieldName->{
+                    // 转换成mtm的字段名
+                    Field field = ClassUtils.getField(clas, fieldName);
+                    return ColumnUtils.getColumnName(field,clas);
+                }).collect(Collectors.toList());
     }
 
     /**
@@ -273,7 +283,7 @@ public class MySqlIndexInfoService {
     private List<MySqlEntityIndex> getSimpleIndexes(Class<?> clas){
         // 实体类上未声明索引, 开始遍历字段找到索引配置, 进行简单索引方式处理
         Field[] fields = clas.getDeclaredFields();
-        fields = MySqlInfoUtil.recursionParents(clas, fields);
+        fields = ClassUtils.recursionParents(clas, fields);
         return Arrays.stream(fields).map(field->{
                     MySqlIndex index = field.getAnnotation(MySqlIndex.class);
                     if (Objects.isNull(index)){

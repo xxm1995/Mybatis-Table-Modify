@@ -5,6 +5,7 @@ import cn.bootx.mybatis.table.modify.mybatis.mysq.constants.MySqlEngineEnum;
 import cn.bootx.mybatis.table.modify.mybatis.mysq.mapper.MySqlTableModifyMapper;
 import cn.bootx.mybatis.table.modify.mybatis.mysq.util.MySqlInfoUtil;
 import cn.bootx.mybatis.table.modify.mybatis.mysq.entity.*;
+import cn.bootx.mybatis.table.modify.properties.MybatisTableModifyProperties;
 import cn.hutool.core.collection.CollUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -25,6 +26,7 @@ import java.util.stream.Collectors;
 public class MySqlCreateTableService {
 
     private final MySqlTableModifyMapper mysqlTableModifyMapper;
+    private final MybatisTableModifyProperties mybatisTableModifyProperties;
 
     /**
      * 根据map结构创建表
@@ -45,6 +47,10 @@ public class MySqlCreateTableService {
                 log.info("完成创建表：" + table.getName());
             } catch (Exception e){
                 log.error("创建表失败：" + table.getName(),e);
+                // 快速失败
+                if (mybatisTableModifyProperties.isFailFast()){
+                    throw e;
+                }
             }
         }
     }

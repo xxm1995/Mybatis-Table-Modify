@@ -6,6 +6,7 @@ import cn.bootx.mybatis.table.modify.mybatis.mysq.annotation.MySqlIndex;
 import cn.bootx.mybatis.table.modify.mybatis.mysq.constants.MySql4JavaType;
 import cn.bootx.mybatis.table.modify.mybatis.mysq.entity.MySqlEntityColumn;
 import cn.bootx.mybatis.table.modify.mybatis.mysq.entity.MySqlTypeAndLength;
+import cn.bootx.mybatis.table.modify.utils.ClassUtils;
 import cn.bootx.mybatis.table.modify.utils.ColumnUtils;
 import cn.hutool.core.util.StrUtil;
 import lombok.experimental.UtilityClass;
@@ -31,13 +32,18 @@ public class MySqlInfoUtil {
         Field[] fields = clas.getDeclaredFields();
 
         // 判断是否有父类，如果有拉取父类的field，这里支持多层继承
-        fields = recursionParents(clas, fields);
+        fields = ClassUtils.recursionParents(clas, fields);
 
         // 遍历字段
         for (Field field : fields) {
             // 判断方法中是否有指定注解类型的注解
             if (ColumnUtils.hasColumn(field, clas)) {
+                // 长度
                 MySqlTypeAndLength mySqlTypeAndLength = getTypeAndLength(field, clas);
+                // 注释 mysql 为空时转换为空字符串
+                String comment = ColumnUtils.getComment(field, clas);
+                comment = Objects.isNull(comment)?"":comment;
+
                 MySqlEntityColumn entityColumn = new MySqlEntityColumn()
                         .setName(ColumnUtils.getColumnName(field, clas))
                         .setOrder(ColumnUtils.getColumnOrder(field, clas))
@@ -48,7 +54,7 @@ public class MySqlInfoUtil {
                         .setAutoIncrement(ColumnUtils.isAutoIncrement(field, clas))
                         .setDefaultValue(ColumnUtils.getDefaultValue(field, clas))
                         .setDelete(ColumnUtils.isDelete(field,clas))
-                        .setComment(ColumnUtils.getComment(field, clas));
+                        .setComment(comment);
                 // 长度需要配置
                 entityColumn.setLength(mySqlTypeAndLength.getLength());
                 if (mySqlTypeAndLength.getParamCount() == 1) {
@@ -66,36 +72,6 @@ public class MySqlInfoUtil {
         entityColumns.sort(Comparator.comparingInt(MySqlEntityColumn::getOrder));
         return new ArrayList<>(entityColumns);
     }
-
-    /**
-     * 递归扫描父类的fields
-     * @param clas 类
-     * @param fields 属性
-     */
-    public  Field[] recursionParents(Class<?> clas, Field[] fields) {
-        if (clas.getSuperclass() != null) {
-            Class<?> clsSup = clas.getSuperclass();
-            List<Field> fieldList = new ArrayList<>(Arrays.asList(fields));
-            // 获取当前class的所有fields的name列表
-            List<String> fdNames = fieldList.stream().map(Field::getName).collect(Collectors.toList());
-            for (Field pfd : clsSup.getDeclaredFields()) {
-                // 避免重载属性
-                if (fdNames.contains(pfd.getName())) {
-                    continue;
-                }
-                fieldList.add(pfd);
-            }
-            fields = new Field[fieldList.size()];
-            int i = 0;
-            for (Object field : fieldList.toArray()) {
-                fields[i] = (Field) field;
-                i++;
-            }
-            fields = recursionParents(clsSup, fields);
-        }
-        return fields;
-    }
-
 
     /**
      * Mysql 类型和长度
