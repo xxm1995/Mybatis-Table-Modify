@@ -9,7 +9,6 @@
         <version>1.5.3.alpha1</version>
     </parent>
 
-    <groupId>cn.bootxtest</groupId>
     <artifactId>mybatis-table-modify-core</artifactId>
 
     <dependencies>

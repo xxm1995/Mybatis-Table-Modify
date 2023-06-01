@@ -1,7 +1,7 @@
 package cn.bootx.mybatis.table.modify.mybatis.mysq.service;
 
 import cn.bootx.mybatis.table.modify.constants.TableCharset;
-import cn.bootx.mybatis.table.modify.mybatis.mysq.annotation.MySqlEngine;
+import cn.bootx.mybatis.table.modify.mybatis.mysq.annotation.DbMySqlEngine;
 import cn.bootx.mybatis.table.modify.mybatis.mysq.constants.MySqlEngineEnum;
 import cn.bootx.mybatis.table.modify.mybatis.mysq.mapper.MySqlTableModifyMapper;
 import cn.bootx.mybatis.table.modify.mybatis.mysq.util.MySqlInfoUtil;
@@ -130,12 +130,12 @@ public class MySqlTableInfoService {
      * 获取表引擎类型
      */
     private MySqlEngineEnum getEntityEngine(Class<?> clazz) {
-        MySqlEngine mySqlEngine = clazz.getAnnotation(MySqlEngine.class);
+        DbMySqlEngine dbMySqlEngine = clazz.getAnnotation(DbMySqlEngine.class);
         if (!ColumnUtils.hasTableAnnotation(clazz)) {
             return null;
         }
-        if (mySqlEngine != null && mySqlEngine.value() != MySqlEngineEnum.DEFAULT) {
-            return mySqlEngine.value();
+        if (dbMySqlEngine != null && dbMySqlEngine.value() != MySqlEngineEnum.DEFAULT) {
+            return dbMySqlEngine.value();
         }
         return null;
     }

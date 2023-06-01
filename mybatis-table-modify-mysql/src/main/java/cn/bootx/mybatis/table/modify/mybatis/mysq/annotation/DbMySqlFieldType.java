@@ -12,7 +12,7 @@ import java.lang.annotation.*;
 @Target(ElementType.FIELD)
 @Retention(RetentionPolicy.RUNTIME)
 @Documented
-public @interface MySqlFieldType {
+public @interface DbMySqlFieldType {
     /**
      * 类型
      */

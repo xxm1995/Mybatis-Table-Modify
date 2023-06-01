@@ -1,7 +1,7 @@
 package cn.bootx.mybatis.table.modify.mybatis.mysq.service;
 
-import cn.bootx.mybatis.table.modify.mybatis.mysq.annotation.MySqlIndex;
-import cn.bootx.mybatis.table.modify.mybatis.mysq.annotation.MySqlIndexes;
+import cn.bootx.mybatis.table.modify.mybatis.mysq.annotation.DbMySqlIndex;
+import cn.bootx.mybatis.table.modify.mybatis.mysq.annotation.DbMySqlIndexes;
 import cn.bootx.mybatis.table.modify.mybatis.mysq.constants.MySqlIndexType;
 import cn.bootx.mybatis.table.modify.mybatis.mysq.entity.MySqlEntityIndex;
 import cn.bootx.mybatis.table.modify.mybatis.mysq.entity.MySqlModifyMap;
@@ -12,7 +12,6 @@ import cn.bootx.mybatis.table.modify.utils.ClassUtils;
 import cn.bootx.mybatis.table.modify.utils.ColumnUtils;
 import cn.hutool.core.collection.CollUtil;
 import cn.hutool.core.collection.ListUtil;
-import cn.hutool.core.util.ClassUtil;
 import cn.hutool.core.util.StrUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -224,15 +223,15 @@ public class MySqlIndexInfoService {
     private List<MySqlEntityIndex> getEntityIndexes(Class<?> clas){
 
         // 多个索引注释处理
-        List<MySqlIndex> indexList = Optional.ofNullable(clas.getAnnotation(MySqlIndexes.class))
-                .map(MySqlIndexes::value)
+        List<DbMySqlIndex> indexList = Optional.ofNullable(clas.getAnnotation(DbMySqlIndexes.class))
+                .map(DbMySqlIndexes::value)
                 .map(ListUtil::of)
                 .orElse(new ArrayList<>(0));
         if (CollUtil.isEmpty(indexList)) {
             // 单个注解处理
-            MySqlIndex mySqlIndex = clas.getAnnotation(MySqlIndex.class);
-            if (Objects.nonNull(mySqlIndex)){
-                indexList = ListUtil.of(mySqlIndex);
+            DbMySqlIndex dbMySqlIndex = clas.getAnnotation(DbMySqlIndex.class);
+            if (Objects.nonNull(dbMySqlIndex)){
+                indexList = ListUtil.of(dbMySqlIndex);
             }
         }
         // 返回处理完的索引配置
@@ -285,7 +284,7 @@ public class MySqlIndexInfoService {
         Field[] fields = clas.getDeclaredFields();
         fields = ClassUtils.recursionParents(clas, fields);
         return Arrays.stream(fields).map(field->{
-                    MySqlIndex index = field.getAnnotation(MySqlIndex.class);
+                    DbMySqlIndex index = field.getAnnotation(DbMySqlIndex.class);
                     if (Objects.isNull(index)){
                         return null;
                     }

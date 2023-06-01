@@ -11,10 +11,10 @@ import java.lang.annotation.*;
 @Retention(RetentionPolicy.RUNTIME)
 @Documented
 @Inherited
-public @interface MySqlIndexes {
+public @interface DbMySqlIndexes {
 
     /**
      * MYSQL字段索引组
      */
-    MySqlIndex[] value();
+    DbMySqlIndex[] value();
 }

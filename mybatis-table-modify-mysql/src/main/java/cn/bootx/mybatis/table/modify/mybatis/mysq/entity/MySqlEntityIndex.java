@@ -50,7 +50,7 @@ public class MySqlEntityIndex {
         }
         // 注释
         if (StrUtil.isNotBlank(getComment())){
-            sb.append(" COMMENT '").append(getType().getUsing()).append("'");
+            sb.append(" COMMENT '").append(getComment()).append("'");
         }
         return sb.toString();
     }

@@ -1,8 +1,8 @@
 package cn.bootx.mybatis.table.modify.mybatis.mysq.util;
 
 import cn.bootx.mybatis.table.modify.annotation.DbColumn;
-import cn.bootx.mybatis.table.modify.mybatis.mysq.annotation.MySqlFieldType;
-import cn.bootx.mybatis.table.modify.mybatis.mysq.annotation.MySqlIndex;
+import cn.bootx.mybatis.table.modify.mybatis.mysq.annotation.DbMySqlFieldType;
+import cn.bootx.mybatis.table.modify.mybatis.mysq.annotation.DbMySqlIndex;
 import cn.bootx.mybatis.table.modify.mybatis.mysq.constants.MySql4JavaType;
 import cn.bootx.mybatis.table.modify.mybatis.mysq.entity.MySqlEntityColumn;
 import cn.bootx.mybatis.table.modify.mybatis.mysq.entity.MySqlTypeAndLength;
@@ -13,7 +13,6 @@ import lombok.experimental.UtilityClass;
 
 import java.lang.reflect.Field;
 import java.util.*;
-import java.util.stream.Collectors;
 
 /**
  *
@@ -81,12 +80,12 @@ public class MySqlInfoUtil {
             throw new RuntimeException(clazz.getName()+" 中的字段名：" + field.getName() + "没有字段标识的注解，异常抛出！");
         }
         // 根据字段注解获取类型和长度配置
-        MySqlFieldType mySqlFieldType = field.getAnnotation(MySqlFieldType.class);
+        DbMySqlFieldType dbMySqlFieldType = field.getAnnotation(DbMySqlFieldType.class);
         MySqlTypeAndLength typeAndLength;
-        if (Objects.isNull(mySqlFieldType)){
+        if (Objects.isNull(dbMySqlFieldType)){
             typeAndLength = MySql4JavaType.getTypeAndLength(field.getGenericType().toString());
         } else {
-            typeAndLength = mySqlFieldType.value().getTypeAndLength();
+            typeAndLength = dbMySqlFieldType.value().getTypeAndLength();
         }
 
         if (Objects.isNull(typeAndLength)) {
@@ -134,10 +133,10 @@ public class MySqlInfoUtil {
     /**
      * 获取索引的名称，不设置则默认为索引类型+用_分隔的字段名计划
      */
-    public static String getIndexName(MySqlIndex mySqlIndex,List<String> columns){
-        if (StrUtil.isNotBlank(mySqlIndex.name())){
-            return mySqlIndex.name();
+    public static String getIndexName(DbMySqlIndex dbMySqlIndex, List<String> columns){
+        if (StrUtil.isNotBlank(dbMySqlIndex.name())){
+            return dbMySqlIndex.name();
         }
-        return mySqlIndex.type().getPrefix()+String.join("_", columns);
+        return dbMySqlIndex.type().getPrefix()+String.join("_", columns);
     }
 }

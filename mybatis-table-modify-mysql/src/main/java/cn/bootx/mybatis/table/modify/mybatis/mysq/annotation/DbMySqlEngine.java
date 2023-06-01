@@ -12,7 +12,7 @@ import java.lang.annotation.*;
 @Target(ElementType.TYPE)
 @Retention(RetentionPolicy.RUNTIME)
 @Documented
-public @interface MySqlEngine {
+public @interface DbMySqlEngine {
 
     MySqlEngineEnum value() default MySqlEngineEnum.DEFAULT;
 
