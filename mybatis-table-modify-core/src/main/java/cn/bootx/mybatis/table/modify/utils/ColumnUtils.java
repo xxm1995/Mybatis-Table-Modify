@@ -26,17 +26,12 @@ public class ColumnUtils {
     public static final String SQL_ESCAPE_CHARACTER = "`";
 
     /**
-     * 获取Mysql的类型，以及类型需要设置几个长度，这里构建成map的样式
-     * 构建Map(字段名(小写),需要设置几个长度(0表示不需要设置，1表示需要设置一个，2表示需要设置两个))
-     */
-
-    /**
      * 获取表名称
      */
     public static String getTableName(Class<?> clazz) {
         DbTable table = clazz.getAnnotation(DbTable.class);
         TableName tableNamePlus = clazz.getAnnotation(TableName.class);
-        EnableTimeSuffix enableTimeSuffix = clazz.getAnnotation(EnableTimeSuffix.class);
+        DbEnableTimeSuffix enableTimeSuffix = clazz.getAnnotation(DbEnableTimeSuffix.class);
         if (!hasTableAnnotation(clazz)) {
             return null;
         }
@@ -142,7 +137,7 @@ public class ColumnUtils {
         }
 
         DbColumn column = getDbColumnAnno(field, clazz);
-        IsKey isKey = field.getAnnotation(IsKey.class);
+        DbKey isKey = field.getAnnotation(DbKey.class);
         TableId tableId = field.getAnnotation(TableId.class);
         if (Objects.nonNull(column) && column.isKey()) {
             return true;

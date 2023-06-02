@@ -13,7 +13,7 @@ import java.lang.annotation.*;
 @Target(ElementType.TYPE)
 @Retention(RetentionPolicy.RUNTIME)
 @Documented
-public @interface EnableTimeSuffix {
+public @interface DbEnableTimeSuffix {
 
     /**
      * 开启时间后缀

@@ -2,7 +2,7 @@
 
 <p>
  <img src='https://gitee.com/bootx/mybatis-table-modify/badge/star.svg?theme=dark' alt='star'/>
- <img src="https://img.shields.io/badge/mybatis table modify-1.5.3.alpha1-success.svg" alt="Build Status"/>
+ <img src="https://img.shields.io/badge/mybatis table modify-1.5.3.alpha2-success.svg" alt="Build Status"/>
 <img src="https://img.shields.io/badge/Author-Bootx-orange.svg" alt="Build Status"/>
  <img src="https://img.shields.io/badge/license-Apache%20License%202.0-green.svg"/>
 </p>
@@ -33,22 +33,22 @@
 示例项目: [mybatis-table-modify-example](https://gitee.com/bootx/mybatis-table-modify-example)
 ### 添加pom依赖
 ```xml
-    <dependency>
-        <groupId>cn.bootx</groupId>
-        <artifactId>mybatis-table-modify</artifactId>
-        <version>${latest.version}</version>
-    </dependency>
+<dependency>
+    <groupId>cn.bootx</groupId>
+    <artifactId>mybatis-table-modify-mysql-boot-starter</artifactId>
+    <version>${mybatis-table-modify.version}</version>
+</dependency>
 ```
 [最新版本](https://mvnrepository.com/artifact/cn.bootx/mybatis-table-modify)
-### 配置要建表的路径
+### 配置文件配置
 ```yaml
 mybatis-table:
-  # 数据库类型
-  database-type: mysql
   # 更新类型
   update-type: create
   # 扫描包路径, 可以用 ,和 ; 分隔
   scan-package: cn.bootx.**.entity
+  # 是否开启快速失败模式, 出现错误项目直接中止启动
+  fail-fast: false
 ```
 ### 其他配置
 > 无论是使用MyBatis还是MyBatis Plus，需要保证项目中的`mapper`被扫描到，否则会报错无法启动，
@@ -69,20 +69,23 @@ mybatis-plus:
 
 
 ## 🛠️核心注解
-> 不同的数据库各自会有一些专属的注解，通常适用于对应类型数据库专有的配置，如MySQL专有的`MySqlEngine(存储引擎)`、`MySqlFieldType(字段类型)`等
+> 所有的注解都是@Dbxxxx格式
+
+> 不同的数据库各自会有一些专属的注解，通常适用于对应类型数据库专有的配置，如MySQL专有的`DbMySqlEngine(存储引擎)`、`DbMySqlFieldType(字段类型)`等
 ### @DbTable
 > 表注释，标注在要进行建表的实体类上
 
-| 属性            | 类型           | 默认值     | 描述                                                   |
-|---------------|--------------|---------|------------------------------------------------------|
-| name          | String       | ""      | 表名，未配置时会读取`TableName`中的配置                            |
-| value         | String       | ""      | 表名，未配置时会读取`TableName`中的配置                            |
-| comment       | String       | ""      | 表注释                                                  |
-| charset       | MySqlCharset | "" | 数据库默认字符集                                             |
-| isSimple      | boolean      | true    | 是否开启`simple`模式配置，开启后字段不写注解`@Column`也可以采用默认的驼峰转换法创建字段 |
-| excludeFields | String[]     | {}      | 需要排除的属性名，排除掉的属性不参与建表, 静态字段默认会被排除                     |
+| 属性            | 类型           | 默认值   | 描述                                                     |
+|---------------|--------------|-------|--------------------------------------------------------|
+| name          | String       | ""    | 表名，未配置时会读取`TableName`中的配置                              |
+| value         | String       | ""    | 表名，未配置时会读取`TableName`中的配置                              |
+| comment       | String       | ""    | 表注释                                                    |
+| charset       | MySqlCharset | ""    | 数据库默认字符集                                               |
+| isSimple      | boolean      | true  | 是否开启`simple`模式配置，开启后字段不写注解`@DbColumn`也可以采用默认的驼峰转换法创建字段 |
+| isAppend      | boolean      | false | 追加模式, 通常应用在表已经创建，实体类上的注解也已经去掉后，要对表信息进行微调的场景            |
+| excludeFields | String[]     | {}    | 需要排除的属性名，排除掉的属性不参与建表, 静态字段默认会被排除                       |
 
-### @Column
+### @DbColumn
 > 字段注解，`@DbTable`开启`simple`模式后，`@DbColumn`不标注也会根据规则进行转换
 
 | 属性              | 类型             | 默认值       | 描述                                         |
