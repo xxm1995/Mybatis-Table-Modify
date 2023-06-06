@@ -90,7 +90,7 @@ public class MySqlTableHandlerService {
 
         // 如果配置文件配置的是DROP_CREATE，表示将所有的表删掉重新创建
         if (updateType == UpdateType.DROP_CREATE) {
-            log.info("由于配置的模式是DROP_CREATE，因此先删除表后续根据结构重建，删除表：{}", tableName);
+            log.debug("由于配置的模式是DROP_CREATE，因此先删除表后续根据结构重建，删除表：{}", tableName);
             mysqlTableModifyMapper.dropTableByName(tableName);
         }
 
@@ -110,7 +110,6 @@ public class MySqlTableHandlerService {
             // 获取建表索引
             mySqlIndexInfoServiceService.getCreateIndex(clas,baseTableMap);
         }
-
     }
 
     /**

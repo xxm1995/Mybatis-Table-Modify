@@ -60,11 +60,12 @@ public class ColumnUtils {
      */
     public static String getTableComment(Class<?> clazz) {
         DbTable table = clazz.getAnnotation(DbTable.class);
-        if (!hasTableAnnotation(clazz)) {
-            return null;
-        }
-        if (table != null && StrUtil.isNotBlank(table.comment())) {
+        DbComment dbComment = clazz.getAnnotation(DbComment.class);
+        if (Objects.nonNull(table) && StrUtil.isNotBlank(table.comment())) {
             return table.comment();
+        }
+        if (Objects.nonNull(dbComment)) {
+            return dbComment.value();
         }
         return null;
     }

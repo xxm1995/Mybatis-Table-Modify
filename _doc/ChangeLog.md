@@ -6,6 +6,7 @@
 - 优化: 支持配置是否开启快速失败
 - 优化: 与MybatisPlus一起使用时拦截器拦截的问题
 - fix: 注释为空时触发多次更新问题
+- fix: @DbComment 标注在实体类上不生效问题
 # 1.5.2
 - fix: 获取MySqlFieldType错误
 - fix: 打包时未把mapper导入jar中
