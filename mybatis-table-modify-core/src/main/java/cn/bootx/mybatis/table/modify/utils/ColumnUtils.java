@@ -112,14 +112,20 @@ public class ColumnUtils {
 
     /**
      * 获取数据库字段的排序
-     * @return
      */
     public static int getColumnOrder(Field field, Class<?> clazz) {
         DbColumn column = getDbColumnAnno(field, clazz);
+        DbOrder order = field.getAnnotation(DbOrder.class);
         if (!hasColumn(field, clazz)) {
             return 0;
         }
-        return Optional.ofNullable(column).map(DbColumn::order).orElse(0);
+        if (Objects.nonNull(order)&&order.value()!=0){
+            return order.value();
+        }
+        if (Objects.nonNull(column)&&column.order()!=0){
+            return column.order();
+        }
+        return 0;
     }
 
     /**
@@ -156,10 +162,17 @@ public class ColumnUtils {
      */
     public static boolean isAutoIncrement(Field field, Class<?> clazz) {
         DbColumn column = getDbColumnAnno(field, clazz);
+        DbAutoIncrement autoIncrement = field.getAnnotation(DbAutoIncrement.class);
         if (!isKey(field, clazz)) {
             return false;
         }
-        return column != null && column.isAutoIncrement();
+        if (Objects.nonNull(column) && column.isAutoIncrement()){
+            return true;
+        }
+        if (Objects.nonNull(autoIncrement)){
+            return true;
+        }
+        return false;
     }
 
     /**
@@ -167,6 +180,7 @@ public class ColumnUtils {
      */
     public static boolean isNull(Field field, Class<?> clazz) {
         DbColumn column = getDbColumnAnno(field, clazz);
+        DbNotNull notNull = field.getAnnotation(DbNotNull.class);
         if (!hasColumn(field, clazz)) {
             return true;
         }
@@ -175,8 +189,11 @@ public class ColumnUtils {
         if (isKey) {
             return false;
         }
-        if (column != null) {
-            return column.isNull();
+        if (Objects.nonNull(column) && !column.isNull()) {
+            return false;
+        }
+        if (Objects.nonNull(notNull)){
+            return false;
         }
         return true;
     }
@@ -186,10 +203,10 @@ public class ColumnUtils {
      */
     public static boolean isDelete(Field field, Class<?> clazz){
         DbColumn dbColumn = getDbColumnAnno(field,clazz);
-        DbColumnDelete dbColumnDelete = field.getAnnotation(DbColumnDelete.class);
+        DbDelete dbDelete = field.getAnnotation(DbDelete.class);
         if (Objects.nonNull(dbColumn)&&dbColumn.delete()){
             return true;
-        } else if(Objects.nonNull(dbColumnDelete)){
+        } else if(Objects.nonNull(dbDelete)){
             return true;
         } else {
             return false;
@@ -255,7 +272,7 @@ public class ColumnUtils {
         DbColumn column = field.getAnnotation(DbColumn.class);
         TableField tableField = field.getAnnotation(TableField.class);
         TableId tableId = field.getAnnotation(TableId.class);
-        DbColumnIgnore ignore = field.getAnnotation(DbColumnIgnore.class);
+        DbIgnore ignore = field.getAnnotation(DbIgnore.class);
 
         // 判断是否忽略该字段
         if (Objects.nonNull(ignore)
