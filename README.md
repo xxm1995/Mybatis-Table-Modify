@@ -28,9 +28,9 @@
   - 支持非Spring中间件的项目接入
 
 ## 使用说明
-> 推荐只在开发时使用，生产环境停用自动更新
+> 推荐只在开发时使用，生产环境停用自动更新。如何使用可以参考示例项目示例项目: [mybatis-table-modify-example](https://gitee.com/bootx/mybatis-table-modify-example)
+> ，以及项目文档
 
-示例项目: [mybatis-table-modify-example](https://gitee.com/bootx/mybatis-table-modify-example)
 ### 添加pom依赖
 ```xml
 <dependency>
@@ -67,41 +67,11 @@ mybatis-plus:
   mapper-locations: classpath*:mapper/**/*Mapper.xml
 ```
 
+## 使用文档
+- [快速开始.md](_doc/教程/快速开始.md)
+- [核心注解.md](_doc/教程/核心注解.md)
+- [MySQL专用注解.md](_doc/教程/MySQL专用注解.md)
 
-## 🛠️核心注解
-> 所有的注解都是@Dbxxxx格式
-
-> 不同的数据库各自会有一些专属的注解，通常适用于对应类型数据库专有的配置，如MySQL专有的`DbMySqlEngine(存储引擎)`、`DbMySqlFieldType(字段类型)`等
-### @DbTable
-> 表注释，标注在要进行建表的实体类上
-
-| 属性            | 类型           | 默认值   | 描述                                                     |
-|---------------|--------------|-------|--------------------------------------------------------|
-| name          | String       | ""    | 表名，未配置时会读取`TableName`中的配置                              |
-| value         | String       | ""    | 表名，未配置时会读取`TableName`中的配置                              |
-| comment       | String       | ""    | 表注释                                                    |
-| charset       | MySqlCharset | ""    | 数据库默认字符集                                               |
-| isSimple      | boolean      | true  | 是否开启`simple`模式配置，开启后字段不写注解`@DbColumn`也可以采用默认的驼峰转换法创建字段 |
-| isAppend      | boolean      | false | 追加模式, 通常应用在表已经创建，实体类上的注解也已经去掉后，要对表信息进行微调的场景            |
-| excludeFields | String[]     | {}    | 需要排除的属性名，排除掉的属性不参与建表, 静态字段默认会被排除                       |
-
-### @DbColumn
-> 字段注解，`@DbTable`开启`simple`模式后，`@DbColumn`不标注也会根据规则进行转换
-
-| 属性              | 类型             | 默认值       | 描述                                         |
-|-----------------|----------------|-----------|--------------------------------------------|
-| name            | String         | ""        | 行名，未配置时会读取`Column`中的配置                     |
-| value           | String         | ""        | 行名，未配置时会读取`Column`中的配置                     |
-| order           | int            | 0         | 数据库字段排序，数字小的在前面，大的在后面                      |
-| type            | MySqlFieldType | DEFAULT   | 不填默认使用属性的数据类型进行转换，转换失败的字段不会添加              |
-| length          | int            | 255       | 字段长度，默认是255                                |
-| decimalLength   | int            | 0         | 小数点长度，默认是0                                 |
-| isNull          | boolean        | true      | 是否为可以为null，`true`是可以，`false`是不可以，默认为`true` |
-| isKey           | boolean        | false     | 是否是主键，默认`false`                            |
-| isAutoIncrement | boolean        | false     | 是否自动递增，默认`false`，只有主键才能使用                  |
-| defaultValue    | String         | "DEFAULT" | 默认值，默认为null                                |
-| comment         | String         | ""        | 数据表字段备注                                    |
-| ignore          | boolean        | false     | 是否排除该字段, 默认不排除                             |
 
 ##  🥂 Bootx 项目合集
 - Bootx-Platform：单体版脚手架 [Gitee地址](https://gitee.com/bootx/bootx-platform)

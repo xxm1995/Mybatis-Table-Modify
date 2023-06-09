@@ -7,7 +7,7 @@ import java.lang.annotation.*;
  * @author xxm
  * @date 2023/4/23
  */
-@Target(ElementType.FIELD)
+@Target({ElementType.FIELD,ElementType.TYPE})
 @Retention(RetentionPolicy.RUNTIME)
 @Documented
 public @interface DbDelete {
