@@ -27,9 +27,14 @@
 - 1.6.x 目标：
   - 支持非Spring中间件的项目接入
 
-## 使用说明
+## 📚 使用文档
+- [快速开始.md](_doc/教程/快速开始.md)
+- [核心注解.md](_doc/教程/核心注解.md)
+- [MySQL专用注解.md](_doc/教程/MySQL专用注解.md)
+
+## 🥂 使用说明
 > 推荐只在开发时使用，生产环境停用自动更新。如何使用可以参考示例项目示例项目: [mybatis-table-modify-example](https://gitee.com/bootx/mybatis-table-modify-example)
-> ，以及项目文档
+> ，以及项目使用文档
 
 ### 添加pom依赖
 ```xml
@@ -67,13 +72,7 @@ mybatis-plus:
   mapper-locations: classpath*:mapper/**/*Mapper.xml
 ```
 
-## 使用文档
-- [快速开始.md](_doc/教程/快速开始.md)
-- [核心注解.md](_doc/教程/核心注解.md)
-- [MySQL专用注解.md](_doc/教程/MySQL专用注解.md)
-
-
-##  🥂 Bootx 项目合集
+##  🍁 Bootx 项目合集
 - Bootx-Platform：单体版脚手架 [Gitee地址](https://gitee.com/bootx/bootx-platform)
 - Bootx-Cloud：微服务版脚手架 [Gitee地址](https://gitee.com/bootx/bootx-cloud)
 - dax-pay：开源支付系统 [Gitee地址](https://gitee.com/bootx/dax-pay)
