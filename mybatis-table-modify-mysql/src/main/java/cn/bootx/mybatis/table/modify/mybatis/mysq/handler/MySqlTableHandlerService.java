@@ -65,7 +65,7 @@ public class MySqlTableHandlerService {
         // 循环全部的entity
         for (Class<?> clas : classes) {
             // 没有打注解不需要创建表 或者配置了忽略建表的注解
-            if (!ColumnUtils.hasTableAnnotation(clas)) {
+            if (!ColumnUtils.hasHandler(clas)) {
                 continue;
             }
             // 添加要处理的表, 同时检查是表是否合法

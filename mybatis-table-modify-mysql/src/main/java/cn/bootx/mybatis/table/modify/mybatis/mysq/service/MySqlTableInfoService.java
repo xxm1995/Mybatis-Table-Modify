@@ -131,7 +131,7 @@ public class MySqlTableInfoService {
      */
     private MySqlEngineEnum getEntityEngine(Class<?> clazz) {
         DbMySqlEngine dbMySqlEngine = clazz.getAnnotation(DbMySqlEngine.class);
-        if (!ColumnUtils.hasTableAnnotation(clazz)) {
+        if (!ColumnUtils.hasHandler(clazz)) {
             return null;
         }
         if (dbMySqlEngine != null && dbMySqlEngine.value() != MySqlEngineEnum.DEFAULT) {

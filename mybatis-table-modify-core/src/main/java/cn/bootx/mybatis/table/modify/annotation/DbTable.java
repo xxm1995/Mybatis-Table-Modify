@@ -52,6 +52,11 @@ public @interface DbTable {
     boolean isAppend() default false;
 
     /**
+     * 是否不进行处理, 默认不忽略
+     */
+    boolean ignore() default false;
+
+    /**
      * 需要排除的属性名，排除掉的属性不参与建表, 也可以在字段上配置忽略该行注解
      */
     String[] excludeFields() default { "serialVersionUID" };

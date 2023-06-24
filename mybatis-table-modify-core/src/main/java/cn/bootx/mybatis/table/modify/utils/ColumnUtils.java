@@ -32,7 +32,7 @@ public class ColumnUtils {
         DbTable table = clazz.getAnnotation(DbTable.class);
         TableName tableNamePlus = clazz.getAnnotation(TableName.class);
         DbEnableTimeSuffix enableTimeSuffix = clazz.getAnnotation(DbEnableTimeSuffix.class);
-        if (!hasTableAnnotation(clazz)) {
+        if (!hasHandler(clazz)) {
             return null;
         }
         String finalTableName = "";
@@ -75,7 +75,7 @@ public class ColumnUtils {
      */
     public static TableCharset getTableCharset(Class<?> clazz) {
         DbTable table = clazz.getAnnotation(DbTable.class);
-        if (!hasTableAnnotation(clazz)) {
+        if (!hasHandler(clazz)) {
             return null;
         }
         if (table != null && table.charset() != TableCharset.DEFAULT) {
@@ -243,10 +243,15 @@ public class ColumnUtils {
 
 
     /**
-     * 是否有 DbTable 注解
+     * 是否需要对实体类进行处理
+     * 没有打注解不需要创建表 或者配置了忽略建表的注解
      */
-    public static boolean hasTableAnnotation(Class<?> clazz) {
-        return clazz.getAnnotation(DbTable.class) != null;
+    public static boolean hasHandler(Class<?> clazz) {
+        if (Objects.nonNull(clazz.getAnnotation(DbIgnore.class))){
+            return false;
+        }
+        DbTable dbTable = clazz.getAnnotation(DbTable.class);
+        return Objects.nonNull(dbTable) && !dbTable.ignore();
     }
 
     /**
