@@ -2,7 +2,7 @@
 
 <p>
  <img src='https://gitee.com/bootx/mybatis-table-modify/badge/star.svg?theme=dark' alt='star'/>
- <img src="https://img.shields.io/badge/mybatis table modify-1.5.3-success.svg" alt="Build Status"/>
+ <img src="https://img.shields.io/badge/mybatis table modify-1.5.4.beta1-success.svg" alt="Build Status"/>
 <img src="https://img.shields.io/badge/Author-Bootx-orange.svg" alt="Build Status"/>
  <img src="https://img.shields.io/badge/license-Apache%20License%202.0-green.svg"/>
 </p>
@@ -13,7 +13,7 @@
 
 ## 🍎 路线图
 - 1.5.2 主要目标：调整项目结构，去除除表维护相关的其他功能，代码暂时只适配Spring Boot项目
-- 1.5.3 主要目标
+- 1.5.4 主要目标
   - [x] 拆分为Maven多模块项目，支持非Spring Boot的项目接入
   - [x] 支持MP的字段忽略配置
   - [x] 支持简单索引方式（MySql）,与标准索引无法一起使用
@@ -21,6 +21,7 @@
   - [x] 空对象不进行创建
 - 1.5.x 目标：
   - 支持SQL Server数据库的表维护
+  - 支持PostgreSQL数据库的表维护
   - 支持Oracle数据库的表维护
   - 支持达梦数据库的表维护
   - 提供接入其他类型数据库的插件机制

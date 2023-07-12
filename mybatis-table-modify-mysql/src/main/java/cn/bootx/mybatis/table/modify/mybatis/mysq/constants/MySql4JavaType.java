@@ -39,7 +39,6 @@ public class MySql4JavaType {
         TYPE_MAP.put("double", MySqlFieldTypeEnum.DOUBLE);
         TYPE_MAP.put("short", MySqlFieldTypeEnum.SMALLINT);
         TYPE_MAP.put("char", MySqlFieldTypeEnum.VARCHAR);
-
     }
 
     /**
