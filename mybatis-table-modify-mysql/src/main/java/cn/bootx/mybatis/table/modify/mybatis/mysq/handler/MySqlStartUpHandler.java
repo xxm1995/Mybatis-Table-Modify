@@ -15,7 +15,7 @@ import java.util.Objects;
  */
 @Slf4j
 @RequiredArgsConstructor
-public class MysqlStartUpHandler {
+public class MySqlStartUpHandler {
 
     private final MySqlTableHandlerService tableHandlerService;
 

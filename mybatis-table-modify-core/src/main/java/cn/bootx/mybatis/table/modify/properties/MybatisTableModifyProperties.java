@@ -4,7 +4,6 @@ import cn.bootx.mybatis.table.modify.constants.DatabaseType;
 import cn.bootx.mybatis.table.modify.constants.UpdateType;
 import lombok.Data;
 import lombok.experimental.Accessors;
-import lombok.experimental.Delegate;
 
 /**
  * @author xxm
@@ -23,6 +22,11 @@ public class MybatisTableModifyProperties {
      * 更新模式
      */
     private UpdateType updateType = UpdateType.NONE;
+
+    /**
+     * 数据库类型
+     */
+    private DatabaseType databaseType = DatabaseType.MYSQL;
 
     /**
      * 扫描包路径, 可以用 ,和 ; 分隔

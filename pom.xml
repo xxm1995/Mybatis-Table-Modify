@@ -41,6 +41,8 @@
         <module>mybatis-table-modify-core</module>
         <module>mybatis-table-modify-mysql</module>
         <module>mybatis-table-modify-mysql-boot-starter</module>
+        <module>mybatis-table-modify-postgresql</module>
+        <module>mybatis-table-modify-postgresql-boot-starter</module>
     </modules>
 
     <properties>

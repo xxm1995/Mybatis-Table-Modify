@@ -1,12 +1,9 @@
 package cn.bootx.mybatis.table.modify.mybatis.mysq.configuration;
 
 import cn.bootx.mybatis.table.modify.mybatis.mysq.handler.MySqlTableHandlerService;
-import cn.bootx.mybatis.table.modify.mybatis.mysq.handler.MysqlStartUpHandler;
-import cn.bootx.mybatis.table.modify.mybatis.mysq.mapper.MySqlTableModifyMapper;
-import cn.bootx.mybatis.table.modify.mybatis.mysq.service.*;
+import cn.bootx.mybatis.table.modify.mybatis.mysq.handler.MySqlStartUpHandler;
 import cn.bootx.mybatis.table.modify.properties.MybatisTableModifyProperties;
-import lombok.RequiredArgsConstructor;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -19,11 +16,13 @@ import org.springframework.core.annotation.Order;
  */
 @Order
 @Configuration
-@RequiredArgsConstructor
+@ConditionalOnProperty(prefix = "mybatis-table", value = "databaseType", havingValue = "postgresql")
 public class MybatisTableModifyConfig {
 
+    /**
+     * 注入bean
+     */
     @Bean
-    @ConditionalOnMissingBean
     @ConfigurationProperties(prefix = "mybatis-table")
     public MybatisTableModifyProperties tableModifyProperties(){
         return new MybatisTableModifyProperties();
@@ -33,12 +32,11 @@ public class MybatisTableModifyConfig {
      * 创建Bean并执行
      */
     @Bean
-    @ConditionalOnMissingBean
-    public MysqlStartUpHandler startUpHandler(
+    public MySqlStartUpHandler startUpHandler(
             MySqlTableHandlerService mySqlTableHandlerService,
             MybatisTableModifyProperties mybatisTableModifyProperties
     ) {
-        MysqlStartUpHandler mysqlStartUpHandler = new MysqlStartUpHandler(mySqlTableHandlerService, mybatisTableModifyProperties);
+        MySqlStartUpHandler mysqlStartUpHandler = new MySqlStartUpHandler(mySqlTableHandlerService, mybatisTableModifyProperties);
         mysqlStartUpHandler.startHandler();
         return mysqlStartUpHandler;
     }
