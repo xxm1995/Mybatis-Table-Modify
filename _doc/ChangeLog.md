@@ -1,5 +1,8 @@
 # 1.5.4
 - 新增忽略表更新功能
+- 支持postgresql数据库
+- 去掉Mybatis依赖, 替换为JdbcTemplate
+- 
 # 1.5.3
 - 新增: 拆分为Maven多模块项目
 - 新增: 支持MP的字段忽略配置

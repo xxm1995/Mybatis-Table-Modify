@@ -1,16 +1,16 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 
     <groupId>cn.bootx</groupId>
-    <artifactId>mybatis-table-modify</artifactId>
+    <artifactId>table-modify</artifactId>
     <version>1.5.4.beta1</version>
 
     <packaging>pom</packaging>
     <modelVersion>4.0.0</modelVersion>
 
     <!-- 项目信息 -->
-    <name>mybatis-table-modify</name>
-    <description>mybatis-table-modify 是一个基于 Spring 和 Mybatis 的项目，它可以通过给实体类上标注注解来生成和维护数据库表结构信息</description>
-    <url>https://gitee.com/bootx/mybatis-table-modify</url>
+    <name>table-modify</name>
+    <description>table-modify 是一个自动维护表结构的项目，它可以通过给实体类上标注注解来生成和维护数据库表结构信息</description>
+    <url>https://gitee.com/bootx/table-modify</url>
 
     <!-- 许可证 -->
     <licenses>
@@ -27,22 +27,22 @@
             <name>bootx</name>
             <email>xxm1995@outlook.com</email>
             <organization>bootx</organization>
-            <url>https://gitee.com/bootx/mybatis-table-modify</url>
+            <url>https://gitee.com/bootx/table-modify</url>
         </developer>
     </developers>
 
     <scm>
-        <connection>scm:git:git@gitee.com:bootx/mybatis-table-modify.git</connection>
-        <developerConnection>scm:git:git@gitee.com:bootx/mybatis-table-modify.git</developerConnection>
-        <url>https://gitee.com/bootx/mybatis-table-modify</url>
+        <connection>scm:git:git@gitee.com:bootx/table-modify.git</connection>
+        <developerConnection>scm:git:git@gitee.com:bootx/table-modify.git</developerConnection>
+        <url>https://gitee.com/bootx/table-modify</url>
     </scm>
 
     <modules>
-        <module>mybatis-table-modify-core</module>
-        <module>mybatis-table-modify-mysql</module>
-        <module>mybatis-table-modify-mysql-boot-starter</module>
-        <module>mybatis-table-modify-postgresql</module>
-        <module>mybatis-table-modify-postgresql-boot-starter</module>
+        <module>table-modify-core</module>
+        <module>table-modify-mysql</module>
+        <module>table-modify-mysql-boot-starter</module>
+        <module>table-modify-postgresql</module>
+        <module>table-modify-postgresql-boot-starter</module>
     </modules>
 
     <properties>
@@ -50,18 +50,19 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
 
-        <mybatis-table-modify.version>1.5.4.beta1</mybatis-table-modify.version>
+        <table-modify.version>1.5.4.beta1</table-modify.version>
 
         <spring.version>5.3.26</spring.version>
         <spring-boot.version>2.7.10</spring-boot.version>
         <spring.checkstyle.version>0.0.38</spring.checkstyle.version>
         <slf4j.version>1.7.12</slf4j.version>
         <lombok.version>1.18.26</lombok.version>
-        <hutool.version>5.8.18</hutool.version>
         <persistence.version>1.0.2</persistence.version>
         <mybatis-plus.version>3.5.3.1</mybatis-plus.version>
         <mybatis-spring.version>2.0.7</mybatis-spring.version>
         <mybatis.version>3.5.11</mybatis.version>
+        <hutool.version>5.8.18</hutool.version>
+        <velocity.version>2.3</velocity.version>
     </properties>
 
     <dependencies>
@@ -79,22 +80,6 @@
             <groupId>org.projectlombok</groupId>
             <artifactId>lombok</artifactId>
             <version>${lombok.version}</version>
-            <scope>provided</scope>
-        </dependency>
-
-        <!-- mybatis 依赖 -->
-        <dependency>
-            <groupId>org.mybatis</groupId>
-            <artifactId>mybatis-spring</artifactId>
-            <version>${mybatis-spring.version}</version>
-            <scope>provided</scope>
-        </dependency>
-
-        <!-- mybatis 依赖 -->
-        <dependency>
-            <groupId>org.mybatis</groupId>
-            <artifactId>mybatis</artifactId>
-            <version>${mybatis.version}</version>
             <scope>provided</scope>
         </dependency>
 

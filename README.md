@@ -1,7 +1,7 @@
-# Mybatis-Table-Modify(表结构管理工具)
+# Table-Modify(表结构管理工具)
 
 <p>
- <img src='https://gitee.com/bootx/mybatis-table-modify/badge/star.svg?theme=dark' alt='star'/>
+ <img src='https://gitee.com/bootx/table-modify/badge/star.svg?theme=dark' alt='star'/>
  <img src="https://img.shields.io/badge/mybatis table modify-1.5.4.beta1-success.svg" alt="Build Status"/>
 <img src="https://img.shields.io/badge/Author-Bootx-orange.svg" alt="Build Status"/>
  <img src="https://img.shields.io/badge/license-Apache%20License%202.0-green.svg"/>
@@ -12,16 +12,11 @@
 并对功能进行了改造。因为该A.C.Table项目近期发生了停更，所以打算把这些功能给开源出来，同时继续将这个项目完善下去。
 
 ## 🍎 路线图
-- 1.5.2 主要目标：调整项目结构，去除除表维护相关的其他功能，代码暂时只适配Spring Boot项目
 - 1.5.4 主要目标
-  - [x] 拆分为Maven多模块项目，支持非Spring Boot的项目接入
-  - [x] 支持MP的字段忽略配置
-  - [x] 支持简单索引方式（MySql）,与标准索引无法一起使用
-  - [x] 新增追加模式，处理
-  - [x] 空对象不进行创建
+  - 支持PostgreSQL数据库的表维护
+  - 不再依赖Mybatis和Mybatis Plus，SQL执行使用JdbcTemplate
 - 1.5.x 目标：
   - 支持SQL Server数据库的表维护
-  - 支持PostgreSQL数据库的表维护
   - 支持Oracle数据库的表维护
   - 支持达梦数据库的表维护
   - 提供接入其他类型数据库的插件机制
@@ -34,18 +29,18 @@
 - [MySQL专用注解.md](_doc/教程/MySQL专用注解.md)
 
 ## 🥂 使用说明
-> 推荐只在开发时使用，生产环境停用自动更新。如何使用可以参考示例项目示例项目: [mybatis-table-modify-example](https://gitee.com/bootx/mybatis-table-modify-example)
+> 推荐只在开发时使用，生产环境停用自动更新。如何使用可以参考示例项目示例项目: [table-modify-example](https://gitee.com/bootx/table-modify-example)
 > ，以及项目使用文档
 
 ### 添加pom依赖
 ```xml
 <dependency>
     <groupId>cn.bootx</groupId>
-    <artifactId>mybatis-table-modify-mysql-boot-starter</artifactId>
-    <version>${mybatis-table-modify.version}</version>
+    <artifactId>table-modify-mysql-boot-starter</artifactId>
+    <version>${table-modify.version}</version>
 </dependency>
 ```
-[最新版本](https://mvnrepository.com/artifact/cn.bootx/mybatis-table-modify)
+[最新版本](https://mvnrepository.com/artifact/cn.bootx/table-modify)
 ### 配置文件配置
 ```yaml
 mybatis-table:
@@ -78,7 +73,7 @@ mybatis-plus:
 - Bootx-Cloud：微服务版脚手架 [Gitee地址](https://gitee.com/bootx/bootx-cloud)
 - dax-pay：开源支付系统 [Gitee地址](https://gitee.com/bootx/dax-pay)
 - bpm-plus：协同办公系统 [Gitee地址](https://gitee.com/bootx/bpm-plus)
-- mybatis-table-modify：数据表结构管理 [Gitee地址](https://gitee.com/bootx/mybatis-table-modify)
+- table-modify：数据表结构管理 [Gitee地址](https://gitee.com/bootx/table-modify)
 
 ##  🥪 关于我们
 

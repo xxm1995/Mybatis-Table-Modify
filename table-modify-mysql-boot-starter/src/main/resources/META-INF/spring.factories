@@ -1,0 +1,2 @@
+org.springframework.boot.autoconfigure.EnableAutoConfiguration=\
+    cn.bootx.table.modify.mybatis.mysq.MySqlMtmAutoConfiguration
